@@ -4,7 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Plane, TrendingUp, Bomb, DollarSign, Waves, Mountain } from "lucide-react";
+import { Plane, TrendingUp, Bomb, DollarSign, Waves, Mountain, Gift } from "lucide-react";
+
+interface MultiplierBox {
+  id: number;
+  multiplier: number;
+  revealed: boolean;
+  hit: boolean;
+  position: number;
+}
 
 export const GameInterface = () => {
   const [betAmount, setBetAmount] = useState("50");
@@ -13,6 +21,8 @@ export const GameInterface = () => {
   const [planePosition, setPlanePosition] = useState(0);
   const [isDemoMode, setIsDemoMode] = useState(true);
   const [balance, setBalance] = useState(1000);
+  const [multiplierBoxes, setMultiplierBoxes] = useState<MultiplierBox[]>([]);
+  const [currentWinnings, setCurrentWinnings] = useState(0);
 
   // Load demo user data from localStorage if available
   useEffect(() => {
@@ -24,33 +34,79 @@ export const GameInterface = () => {
     }
   }, []);
 
-  // Generate random multipliers for the round
-  const [roundMultipliers] = useState(() => {
-    return Array.from({ length: 8 }, () => {
+  // Generate random multiplier boxes for each round
+  const generateMultiplierBoxes = () => {
+    const boxes: MultiplierBox[] = [];
+    for (let i = 0; i < 6; i++) {
       const rand = Math.random();
-      if (rand < 0.3) return +(Math.random() * 0.5 + 0.5).toFixed(1); // Bomb zones (0.5-1.0x)
-      return +(Math.random() * 4 + 1.2).toFixed(1); // Good zones (1.2-5.2x)
-    });
-  });
+      let multiplier;
+      
+      if (rand < 0.25) {
+        // 25% chance for bomb/reduction multipliers (0.1x - 0.8x)
+        multiplier = +(Math.random() * 0.7 + 0.1).toFixed(1);
+      } else if (rand < 0.7) {
+        // 45% chance for small multipliers (1.1x - 2.5x)
+        multiplier = +(Math.random() * 1.4 + 1.1).toFixed(1);
+      } else {
+        // 30% chance for big multipliers (2.6x - 8x)
+        multiplier = +(Math.random() * 5.4 + 2.6).toFixed(1);
+      }
 
-  // Demo animation
+      boxes.push({
+        id: i,
+        multiplier,
+        revealed: false,
+        hit: false,
+        position: (i + 1) * (90 / 7) // Distribute along the path
+      });
+    }
+    return boxes;
+  };
+
+  // Initialize multiplier boxes when game starts
+  useEffect(() => {
+    if (gameStatus === "waiting") {
+      setMultiplierBoxes(generateMultiplierBoxes());
+      setCurrentMultiplier(1.0);
+      setCurrentWinnings(parseFloat(betAmount));
+    }
+  }, [gameStatus, betAmount]);
+
+  // Game animation and multiplier hitting logic
   useEffect(() => {
     if (gameStatus === "flying") {
       const interval = setInterval(() => {
         setPlanePosition(prev => {
-          if (prev >= 90) {
+          const newPosition = prev + 1.5;
+          
+          // Check if plane hits any multiplier boxes
+          setMultiplierBoxes(prevBoxes => {
+            return prevBoxes.map(box => {
+              if (!box.hit && newPosition >= box.position - 2 && newPosition <= box.position + 2) {
+                // Plane hit this box
+                setCurrentMultiplier(prevMult => {
+                  const newMult = prevMult * box.multiplier;
+                  setCurrentWinnings(parseFloat(betAmount) * newMult);
+                  return newMult;
+                });
+                
+                return { ...box, revealed: true, hit: true };
+              }
+              return box;
+            });
+          });
+          
+          if (newPosition >= 90) {
             setGameStatus("landed");
             return 90;
           }
-          return prev + 2;
+          return newPosition;
         });
-        
-        setCurrentMultiplier(prev => prev + 0.1);
       }, 100);
 
       return () => clearInterval(interval);
     }
-  }, [gameStatus]);
+  }, [gameStatus, betAmount]);
 
   const startGame = () => {
     if (parseFloat(betAmount) > balance) {
@@ -61,15 +117,23 @@ export const GameInterface = () => {
     setGameStatus("flying");
     setPlanePosition(0);
     setCurrentMultiplier(1.0);
+    setCurrentWinnings(parseFloat(betAmount));
     setBalance(prev => prev - parseFloat(betAmount));
   };
 
   const cashOut = () => {
     if (gameStatus === "flying") {
       setGameStatus("landed");
-      const winnings = parseFloat(betAmount) * currentMultiplier;
-      setBalance(prev => prev + winnings);
+      setBalance(prev => prev + currentWinnings);
     }
+  };
+
+  const nextRound = () => {
+    if (gameStatus === "landed") {
+      setBalance(prev => prev + currentWinnings);
+    }
+    setGameStatus("waiting");
+    setPlanePosition(0);
   };
 
   const toggleMode = () => {
@@ -148,25 +212,9 @@ export const GameInterface = () => {
                   </div>
                 </div>
                 
-                {/* Flight Path with Multipliers */}
+                {/* Flight Path */}
                 <div className="absolute inset-4 flex items-center">
                   <div className="w-full h-2 bg-cyan-500/20 rounded-full relative">
-                    {/* Multiplier zones along the path */}
-                    {roundMultipliers.map((multiplier, index) => (
-                      <div 
-                        key={index}
-                        className={`absolute top-[-24px] text-xs font-bold px-2 py-1 rounded ${
-                          multiplier < 1 
-                            ? "bg-red-500/30 text-red-300 border border-red-500/50" 
-                            : "bg-green-500/30 text-green-300 border border-green-500/50"
-                        }`}
-                        style={{ left: `${(index / roundMultipliers.length) * 100}%` }}
-                      >
-                        {multiplier < 1 ? <Bomb className="h-3 w-3 inline mr-1" /> : <TrendingUp className="h-3 w-3 inline mr-1" />}
-                        {multiplier}x
-                      </div>
-                    ))}
-                    
                     {/* Flight progress */}
                     <div 
                       className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-100"
@@ -175,9 +223,37 @@ export const GameInterface = () => {
                   </div>
                 </div>
 
+                {/* Multiplier Boxes */}
+                {multiplierBoxes.map((box) => (
+                  <div 
+                    key={box.id}
+                    className={`absolute top-1/4 transition-all duration-300 z-10 ${
+                      box.hit ? 'animate-pulse scale-110' : ''
+                    }`}
+                    style={{ left: `${box.position}%`, transform: "translateX(-50%)" }}
+                  >
+                    {box.revealed ? (
+                      <div className={`px-3 py-2 rounded-lg border-2 font-bold text-sm ${
+                        box.multiplier < 1 
+                          ? "bg-red-500/80 border-red-400 text-red-100" 
+                          : box.multiplier > 3
+                          ? "bg-yellow-500/80 border-yellow-400 text-yellow-100"
+                          : "bg-green-500/80 border-green-400 text-green-100"
+                      }`}>
+                        {box.multiplier < 1 ? <Bomb className="h-3 w-3 inline mr-1" /> : <TrendingUp className="h-3 w-3 inline mr-1" />}
+                        {box.multiplier}x
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500/60 to-cyan-500/60 border-2 border-white/30 rounded-lg animate-pulse">
+                        <Gift className="h-4 w-4 text-white/80 m-2" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+
                 {/* Airplane */}
                 <div 
-                  className="absolute top-1/3 transition-all duration-100 ease-linear z-10"
+                  className="absolute top-1/3 transition-all duration-100 ease-linear z-20"
                   style={{ left: `${planePosition}%`, transform: "translateX(-50%)" }}
                 >
                   <Plane className="h-8 w-8 text-white transform rotate-12 animate-pulse drop-shadow-lg" />
@@ -192,7 +268,7 @@ export const GameInterface = () => {
                       {currentMultiplier.toFixed(2)}x
                     </div>
                     <div className="text-sm text-gray-400">
-                      ${(parseFloat(betAmount) * currentMultiplier).toFixed(2)}
+                      ${currentWinnings.toFixed(2)}
                     </div>
                   </div>
                 </div>
@@ -282,11 +358,11 @@ export const GameInterface = () => {
                     onClick={cashOut}
                     className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white font-bold py-3 animate-pulse"
                   >
-                    🏝️ Land Now - ${(parseFloat(betAmount) * currentMultiplier).toFixed(2)}
+                    🏝️ Cash Out - ${currentWinnings.toFixed(2)}
                   </Button>
                 ) : (
                   <Button 
-                    onClick={() => setGameStatus("waiting")}
+                    onClick={nextRound}
                     className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3"
                   >
                     🔄 Next Flight
@@ -300,8 +376,8 @@ export const GameInterface = () => {
               <h4 className="text-lg font-semibold text-white mb-2">This Round</h4>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Flight Path:</span>
-                  <span className="text-cyan-400 font-semibold">Random Multipliers</span>
+                  <span className="text-gray-400">Mystery Boxes:</span>
+                  <span className="text-purple-400 font-semibold">{multiplierBoxes.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Destination:</span>
