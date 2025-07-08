@@ -2,8 +2,42 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Plane, TrendingUp, Shield, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 export const HeroSection = () => {
+  const navigate = useNavigate();
+
+  const generateRandomUsername = () => {
+    const adjectives = ['Flying', 'Sky', 'Turbo', 'Rocket', 'Cyber', 'Neon', 'Elite', 'Alpha', 'Storm', 'Phoenix'];
+    const nouns = ['Pilot', 'Ace', 'Flyer', 'Wing', 'Jet', 'Eagle', 'Hawk', 'Thunder', 'Lightning', 'Strike'];
+    const numbers = Math.floor(Math.random() * 999) + 1;
+    
+    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+    
+    return `${randomAdjective}${randomNoun}${numbers}`;
+  };
+
+  const handlePlayDemo = () => {
+    const username = generateRandomUsername();
+    
+    // Store demo user data in localStorage
+    localStorage.setItem('demoUser', JSON.stringify({
+      username,
+      balance: 1000,
+      isDemo: true
+    }));
+
+    toast({
+      title: "Demo Account Created!",
+      description: `Welcome ${username}! You have 1,000 USDT to play with.`,
+    });
+
+    // Navigate to game page
+    navigate('/game');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -40,6 +74,7 @@ export const HeroSection = () => {
             <Button 
               size="lg" 
               className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-4 px-8 text-lg"
+              onClick={() => navigate('/game')}
             >
               <Plane className="h-5 w-5 mr-2" />
               Start Flying Now
@@ -48,8 +83,9 @@ export const HeroSection = () => {
               variant="outline" 
               size="lg"
               className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 py-4 px-8 text-lg"
+              onClick={handlePlayDemo}
             >
-              Watch Demo
+              Play Demo
             </Button>
           </div>
 
