@@ -1,16 +1,16 @@
 
 import { Navigation } from "@/components/Navigation";
-import { HeroSection } from "@/components/HeroSection";
+import { GameInterface } from "@/components/GameInterface";
 import { Footer } from "@/components/Footer";
 
-const Index = () => {
+const Game = () => {
   return (
     <div className="min-h-screen">
       <Navigation />
-      <HeroSection />
+      <GameInterface />
       <Footer />
     </div>
   );
 };
 
-export default Index;
+export default Game;
