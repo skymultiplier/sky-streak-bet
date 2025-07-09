@@ -14,6 +14,23 @@ interface MultiplierBox {
   position: number;
 }
 
+interface BetHistoryEntry {
+  id: number;
+  amount: number;
+  multiplier: string;
+  winnings: number;
+  time: string;
+  status: "won" | "lost";
+}
+
+interface Transaction {
+  id: number;
+  type: "deposit" | "withdraw" | "bet" | "win";
+  amount: number;
+  time: string;
+  status: "completed" | "pending";
+}
+
 export const GameInterface = () => {
   const [betAmount, setBetAmount] = useState("50");
   const [currentMultiplier, setCurrentMultiplier] = useState(1.0);
@@ -24,15 +41,50 @@ export const GameInterface = () => {
   const [multiplierBoxes, setMultiplierBoxes] = useState<MultiplierBox[]>([]);
   const [currentWinnings, setCurrentWinnings] = useState(0);
 
-  // Load demo user data from localStorage if available
+  // Load user data from localStorage
   useEffect(() => {
     const demoUser = localStorage.getItem('demoUser');
+    const betHistory = localStorage.getItem('betHistory');
+    const transactions = localStorage.getItem('transactions');
+    
     if (demoUser) {
       const userData = JSON.parse(demoUser);
       setBalance(userData.balance);
       setIsDemoMode(userData.isDemo);
     }
   }, []);
+
+  // Save user data to localStorage
+  const saveUserData = (newBalance: number, isDemo: boolean) => {
+    const userData = {
+      balance: newBalance,
+      isDemo: isDemo
+    };
+    localStorage.setItem('demoUser', JSON.stringify(userData));
+    setBalance(newBalance);
+  };
+
+  // Add bet to history
+  const addBetToHistory = (bet: Omit<BetHistoryEntry, 'id'>) => {
+    const existingHistory = JSON.parse(localStorage.getItem('betHistory') || '[]');
+    const newBet = {
+      ...bet,
+      id: Date.now()
+    };
+    const updatedHistory = [newBet, ...existingHistory];
+    localStorage.setItem('betHistory', JSON.stringify(updatedHistory));
+  };
+
+  // Add transaction
+  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
+    const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    const newTransaction = {
+      ...transaction,
+      id: Date.now()
+    };
+    const updatedTransactions = [newTransaction, ...existingTransactions];
+    localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
+  };
 
   // Generate random multiplier boxes for each round with reasonable multipliers
   const generateMultiplierBoxes = () => {
@@ -118,7 +170,17 @@ export const GameInterface = () => {
     setPlanePosition(0);
     setCurrentMultiplier(1.0);
     setCurrentWinnings(parseFloat(betAmount));
-    setBalance(prev => prev - parseFloat(betAmount));
+    
+    const newBalance = balance - parseFloat(betAmount);
+    saveUserData(newBalance, isDemoMode);
+    
+    // Add bet transaction
+    addTransaction({
+      type: "bet",
+      amount: parseFloat(betAmount),
+      time: new Date().toLocaleString(),
+      status: "completed"
+    });
   };
 
   const cashOut = () => {
@@ -128,59 +190,73 @@ export const GameInterface = () => {
   };
 
   const collectWinnings = () => {
-    setBalance(prev => prev + currentWinnings);
+    const finalMultiplier = currentMultiplier.toFixed(1) + "x";
+    const isWin = currentWinnings > parseFloat(betAmount);
+    
+    // Add to bet history
+    addBetToHistory({
+      amount: parseFloat(betAmount),
+      multiplier: finalMultiplier,
+      winnings: isWin ? currentWinnings : 0,
+      time: new Date().toLocaleString(),
+      status: isWin ? "won" : "lost"
+    });
+
+    if (isWin) {
+      const newBalance = balance + currentWinnings;
+      saveUserData(newBalance, isDemoMode);
+      
+      // Add win transaction
+      addTransaction({
+        type: "win",
+        amount: currentWinnings,
+        time: new Date().toLocaleString(),
+        status: "completed"
+      });
+    }
+    
     setGameStatus("waiting");
     setPlanePosition(0);
   };
 
   const toggleMode = () => {
-    setIsDemoMode(!isDemoMode);
-    if (!isDemoMode) {
+    const newMode = !isDemoMode;
+    setIsDemoMode(newMode);
+    
+    if (newMode) {
       // Switching to demo mode
-      setBalance(1000);
+      saveUserData(1000, true);
     } else {
       // Switching to real mode
-      setBalance(0);
+      saveUserData(0, false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900">
-      {/* Wallet Balance Header */}
-      <div className="container mx-auto px-4 py-4">
-        <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
-              <div className="text-xl sm:text-2xl font-bold text-white">
-                ${balance.toFixed(2)} USDT
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  onClick={toggleMode}
-                  variant="outline"
-                  size="sm"
-                  className={`${isDemoMode ? 'border-yellow-400 text-yellow-400' : 'border-green-400 text-green-400'}`}
-                >
-                  {isDemoMode ? 'Switch to Real' : 'Switch to Demo'}
-                </Button>
-              </div>
-            </div>
-            <div className="text-center sm:text-right">
-              <div className="text-sm text-gray-400">Mode</div>
-              <div className={`text-lg font-semibold ${isDemoMode ? 'text-yellow-400' : 'text-green-400'}`}>
-                {isDemoMode ? 'Demo Play' : 'Real Money'}
-              </div>
-            </div>
-          </div>
-        </Card>
+      {/* Demo/Real Mode Toggle - Top Right */}
+      <div className="absolute top-4 right-4 z-50">
+        <div className="flex items-center space-x-2 bg-slate-800/50 backdrop-blur-sm border border-cyan-500/20 rounded-lg px-3 py-2">
+          <span className={`text-sm font-medium ${isDemoMode ? 'text-yellow-400' : 'text-gray-400'}`}>
+            Demo
+          </span>
+          <Switch
+            checked={!isDemoMode}
+            onCheckedChange={toggleMode}
+            className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-yellow-500"
+          />
+          <span className={`text-sm font-medium ${!isDemoMode ? 'text-green-400' : 'text-gray-400'}`}>
+            Real
+          </span>
+        </div>
       </div>
 
-      {/* Game Arena */}
-      <div className="container mx-auto px-4 pb-8">
-        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-6">
           
-          {/* Main Game Area */}
-          <div className="lg:col-span-2 order-2 lg:order-1">
+          {/* Game Display - Left Side */}
+          <div className="flex-1">
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4 sm:p-6 h-64 sm:h-96">
               <div className="relative h-full bg-gradient-to-b from-blue-400/30 via-blue-600/20 to-blue-800/30 rounded-lg overflow-hidden">
                 
@@ -285,10 +361,25 @@ export const GameInterface = () => {
             </Card>
           </div>
 
-          {/* Betting Panel */}
-          <div className="space-y-4 order-1 lg:order-2">
-            <Card className="bg-slate-800/50 border-cyan-500/20 p-4 sm:p-6">
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Place Your Bet</h3>
+          {/* Betting Panel - Right Side */}
+          <div className="w-full lg:w-80 space-y-4">
+            {/* Balance Display */}
+            <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-cyan-400 mb-1">
+                  ${balance.toFixed(2)} USDT
+                </div>
+                <div className={`text-sm font-medium ${
+                  isDemoMode ? 'text-yellow-400' : 'text-green-400'
+                }`}>
+                  {isDemoMode ? 'Demo Balance' : 'Real Balance'}
+                </div>
+              </div>
+            </Card>
+
+            {/* Betting Controls */}
+            <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
+              <h3 className="text-lg font-bold text-white mb-4">Place Your Bet</h3>
               
               <div className="space-y-4">
                 <div>
@@ -374,7 +465,7 @@ export const GameInterface = () => {
 
             {/* Round Info */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
-              <h4 className="text-base sm:text-lg font-semibold text-white mb-2">This Round</h4>
+              <h4 className="text-base font-semibold text-white mb-2">This Round</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Mystery Boxes:</span>
@@ -383,12 +474,6 @@ export const GameInterface = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-400">Destination:</span>
                   <span className="text-green-400 font-semibold">🏝️ Island</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Mode:</span>
-                  <span className={`font-semibold ${isDemoMode ? 'text-yellow-400' : 'text-green-400'}`}>
-                    {isDemoMode ? 'Demo' : 'Real'}
-                  </span>
                 </div>
               </div>
             </Card>

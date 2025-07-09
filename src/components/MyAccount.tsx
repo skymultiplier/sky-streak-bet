@@ -1,10 +1,17 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Wallet, ArrowUpRight, ArrowDownLeft, Bitcoin, DollarSign, CreditCard, Banknote } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, Bitcoin, DollarSign, CreditCard, Banknote, Clock } from "lucide-react";
 import { PaymentModal } from "./PaymentModal";
+
+interface Transaction {
+  id: number;
+  type: "deposit" | "withdraw" | "bet" | "win";
+  amount: number;
+  time: string;
+  status: "completed" | "pending";
+}
 
 export const MyAccount = () => {
   const [isDemoMode, setIsDemoMode] = useState(true);
@@ -12,6 +19,52 @@ export const MyAccount = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentType, setPaymentType] = useState<'deposit' | 'withdraw'>('deposit');
   const [amount, setAmount] = useState('');
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  // Load user data and transactions from localStorage
+  useEffect(() => {
+    const demoUser = localStorage.getItem('demoUser');
+    const savedTransactions = localStorage.getItem('transactions');
+    
+    if (demoUser) {
+      const userData = JSON.parse(demoUser);
+      setBalance(userData.balance);
+      setIsDemoMode(userData.isDemo);
+    }
+    
+    if (savedTransactions) {
+      setTransactions(JSON.parse(savedTransactions));
+    }
+  }, []);
+
+  // Listen for balance updates
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const demoUser = localStorage.getItem('demoUser');
+      const savedTransactions = localStorage.getItem('transactions');
+      
+      if (demoUser) {
+        const userData = JSON.parse(demoUser);
+        setBalance(userData.balance);
+        setIsDemoMode(userData.isDemo);
+      }
+      
+      if (savedTransactions) {
+        setTransactions(JSON.parse(savedTransactions));
+      }
+    };
+
+    // Listen for storage changes
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically for updates from the same tab
+    const interval = setInterval(handleStorageChange, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleDeposit = (method: string) => {
     setPaymentType('deposit');
@@ -21,6 +74,37 @@ export const MyAccount = () => {
   const handleWithdraw = (method: string) => {
     setPaymentType('withdraw');
     setShowPaymentModal(true);
+  };
+
+  const toggleMode = () => {
+    const newMode = !isDemoMode;
+    const userData = {
+      balance: newMode ? 1000 : 0,
+      isDemo: newMode
+    };
+    localStorage.setItem('demoUser', JSON.stringify(userData));
+    setBalance(userData.balance);
+    setIsDemoMode(newMode);
+  };
+
+  const getTransactionIcon = (type: string) => {
+    switch (type) {
+      case 'deposit': return <ArrowDownLeft className="h-4 w-4 text-green-400" />;
+      case 'withdraw': return <ArrowUpRight className="h-4 w-4 text-cyan-400" />;
+      case 'bet': return <DollarSign className="h-4 w-4 text-red-400" />;
+      case 'win': return <TrendingUp className="h-4 w-4 text-green-400" />;
+      default: return <DollarSign className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getTransactionColor = (type: string) => {
+    switch (type) {
+      case 'deposit':
+      case 'win': return 'text-green-400';
+      case 'withdraw':
+      case 'bet': return 'text-red-400';
+      default: return 'text-gray-400';
+    }
   };
 
   return (
@@ -70,17 +154,17 @@ export const MyAccount = () => {
               <div className="bg-slate-700/50 rounded-lg p-1 flex">
                 <Button
                   variant={isDemoMode ? "default" : "ghost"}
-                  onClick={() => setIsDemoMode(true)}
+                  onClick={() => !isDemoMode && toggleMode()}
                   className={`${isDemoMode ? 'bg-yellow-500 text-black' : 'text-gray-400'}`}
                 >
-                  Demo Mode
+                  Switch to Demo
                 </Button>
                 <Button
                   variant={!isDemoMode ? "default" : "ghost"}
-                  onClick={() => setIsDemoMode(false)}
+                  onClick={() => isDemoMode && toggleMode()}
                   className={`${!isDemoMode ? 'bg-green-500 text-black' : 'text-gray-400'}`}
                 >
-                  Real Money
+                  Switch to Real
                 </Button>
               </div>
             </div>
@@ -180,14 +264,43 @@ export const MyAccount = () => {
           <Card className="bg-slate-800/50 border-cyan-500/20 p-6">
             <h3 className="text-xl font-bold text-white mb-4">Recent Transactions</h3>
             <div className="space-y-3">
-              {isDemoMode ? (
+              {transactions.length === 0 ? (
                 <p className="text-gray-400 text-center py-8">
-                  No transactions in demo mode
+                  {isDemoMode ? 'No transactions in demo mode' : 'No recent transactions'}
                 </p>
               ) : (
-                <p className="text-gray-400 text-center py-8">
-                  No recent transactions
-                </p>
+                transactions.slice(0, 10).map((transaction) => (
+                  <div 
+                    key={transaction.id}
+                    className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      {getTransactionIcon(transaction.type)}
+                      <div>
+                        <div className="text-white font-medium capitalize">
+                          {transaction.type}
+                        </div>
+                        <div className="text-gray-400 text-sm flex items-center">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {transaction.time}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`font-bold ${getTransactionColor(transaction.type)}`}>
+                        {transaction.type === 'deposit' || transaction.type === 'win' ? '+' : '-'}
+                        ${transaction.amount.toFixed(2)}
+                      </div>
+                      <div className={`text-xs px-2 py-1 rounded ${
+                        transaction.status === 'completed' 
+                          ? 'bg-green-500/20 text-green-400' 
+                          : 'bg-yellow-500/20 text-yellow-400'
+                      }`}>
+                        {transaction.status}
+                      </div>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </Card>
