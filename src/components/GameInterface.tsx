@@ -234,20 +234,35 @@ export const GameInterface = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900">
-      {/* Demo/Real Mode Toggle - Top Right */}
+      {/* Demo/Real Mode Toggle with Balance - Top Right */}
       <div className="absolute top-4 right-4 z-50">
-        <div className="flex items-center space-x-2 bg-slate-800/50 backdrop-blur-sm border border-cyan-500/20 rounded-lg px-3 py-2">
-          <span className={`text-sm font-medium ${isDemoMode ? 'text-yellow-400' : 'text-gray-400'}`}>
-            Demo
-          </span>
-          <Switch
-            checked={!isDemoMode}
-            onCheckedChange={toggleMode}
-            className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-yellow-500"
-          />
-          <span className={`text-sm font-medium ${!isDemoMode ? 'text-green-400' : 'text-gray-400'}`}>
-            Real
-          </span>
+        <div className="flex items-center space-x-4 bg-slate-800/50 backdrop-blur-sm border border-cyan-500/20 rounded-lg px-4 py-2">
+          {/* Balance Display */}
+          <div className="text-right">
+            <div className="text-lg font-bold text-cyan-400">
+              ${balance.toFixed(2)} USDT
+            </div>
+            <div className={`text-xs font-medium ${
+              isDemoMode ? 'text-yellow-400' : 'text-green-400'
+            }`}>
+              {isDemoMode ? 'Demo' : 'Real'}
+            </div>
+          </div>
+          
+          {/* Mode Toggle */}
+          <div className="flex items-center space-x-2">
+            <span className={`text-sm font-medium ${isDemoMode ? 'text-yellow-400' : 'text-gray-400'}`}>
+              Demo
+            </span>
+            <Switch
+              checked={!isDemoMode}
+              onCheckedChange={toggleMode}
+              className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-yellow-500"
+            />
+            <span className={`text-sm font-medium ${!isDemoMode ? 'text-green-400' : 'text-gray-400'}`}>
+              Real
+            </span>
+          </div>
         </div>
       </div>
 
@@ -363,20 +378,6 @@ export const GameInterface = () => {
 
           {/* Betting Panel - Right Side */}
           <div className="w-full lg:w-80 space-y-4">
-            {/* Balance Display */}
-            <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-cyan-400 mb-1">
-                  ${balance.toFixed(2)} USDT
-                </div>
-                <div className={`text-sm font-medium ${
-                  isDemoMode ? 'text-yellow-400' : 'text-green-400'
-                }`}>
-                  {isDemoMode ? 'Demo Balance' : 'Real Balance'}
-                </div>
-              </div>
-            </Card>
-
             {/* Betting Controls */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
               <h3 className="text-lg font-bold text-white mb-4">Place Your Bet</h3>
