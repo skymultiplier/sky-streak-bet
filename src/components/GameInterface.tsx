@@ -1,10 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Plane, TrendingUp, Bomb, DollarSign, Waves, Mountain, Gift } from "lucide-react";
+import { Plane, TrendingUp, Bomb, DollarSign, Waves, Mountain, Gift, User } from "lucide-react";
+import { AuthModal } from "./AuthModal";
+import { useSoundEffects } from "../hooks/useSoundEffects";
 
 interface MultiplierBox {
   id: number;
@@ -40,18 +41,33 @@ export const GameInterface = () => {
   const [balance, setBalance] = useState(1000);
   const [multiplierBoxes, setMultiplierBoxes] = useState<MultiplierBox[]>([]);
   const [currentWinnings, setCurrentWinnings] = useState(0);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+
+  const { playBetSound, playWinSound, startBackgroundMusic, stopBackgroundMusic } = useSoundEffects();
 
   // Load user data from localStorage
   useEffect(() => {
     const demoUser = localStorage.getItem('demoUser');
-    const betHistory = localStorage.getItem('betHistory');
-    const transactions = localStorage.getItem('transactions');
+    const savedUser = localStorage.getItem('currentUser');
     
     if (demoUser) {
       const userData = JSON.parse(demoUser);
       setBalance(userData.balance);
       setIsDemoMode(userData.isDemo);
     }
+    
+    if (savedUser) {
+      const user = JSON.parse(savedUser);
+      setCurrentUser(user.username);
+    }
+
+    // Start background music when component mounts
+    startBackgroundMusic();
+
+    return () => {
+      stopBackgroundMusic();
+    };
   }, []);
 
   // Save user data to localStorage
@@ -165,6 +181,15 @@ export const GameInterface = () => {
       alert("Insufficient balance!");
       return;
     }
+
+    // Check if user is trying to play real money without being logged in
+    if (!isDemoMode && !currentUser) {
+      setShowAuthModal(true);
+      return;
+    }
+    
+    // Play bet sound effect
+    playBetSound();
     
     setGameStatus("flying");
     setPlanePosition(0);
@@ -192,6 +217,11 @@ export const GameInterface = () => {
   const collectWinnings = () => {
     const finalMultiplier = currentMultiplier.toFixed(1) + "x";
     const isWin = currentWinnings > parseFloat(betAmount);
+    
+    // Play win sound effect if player won
+    if (isWin) {
+      playWinSound();
+    }
     
     // Add to bet history
     addBetToHistory({
@@ -227,16 +257,34 @@ export const GameInterface = () => {
       // Switching to demo mode
       saveUserData(1000, true);
     } else {
-      // Switching to real mode
-      saveUserData(0, false);
+      // Switching to real mode - check if user is logged in
+      if (!currentUser) {
+        setShowAuthModal(true);
+        return;
+      }
+      saveUserData(100, false);
     }
+  };
+
+  const handleLogin = (username: string) => {
+    setCurrentUser(username);
+    setIsDemoMode(false);
+    setBalance(100); // Starting real balance
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900">
-      {/* Demo/Real Mode Toggle with Balance - Top Right */}
+      {/* Demo/Real Mode Toggle with Balance and Username - Top Right */}
       <div className="absolute top-4 right-4 z-50">
         <div className="flex items-center space-x-4 bg-slate-800/50 backdrop-blur-sm border border-cyan-500/20 rounded-lg px-4 py-2">
+          {/* Username Display */}
+          {currentUser && (
+            <div className="flex items-center space-x-2">
+              <User className="h-4 w-4 text-cyan-400" />
+              <span className="text-sm font-medium text-white">{currentUser}</span>
+            </div>
+          )}
+          
           {/* Balance Display */}
           <div className="text-right">
             <div className="text-lg font-bold text-cyan-400">
@@ -437,7 +485,7 @@ export const GameInterface = () => {
                     disabled={parseFloat(betAmount) > balance || parseFloat(betAmount) < 1}
                     className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 disabled:opacity-50"
                   >
-                    🛫 Start Flight to Island
+                    🛫 Start Flying Now
                   </Button>
                 ) : gameStatus === "flying" ? (
                   <Button 
@@ -481,6 +529,13 @@ export const GameInterface = () => {
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={handleLogin}
+      />
     </div>
   );
 };
