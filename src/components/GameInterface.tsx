@@ -17,7 +17,7 @@ interface MultiplierBox {
 export const GameInterface = () => {
   const [betAmount, setBetAmount] = useState("50");
   const [currentMultiplier, setCurrentMultiplier] = useState(1.0);
-  const [gameStatus, setGameStatus] = useState<"waiting" | "flying" | "crashed" | "landed">("waiting");
+  const [gameStatus, setGameStatus] = useState<"waiting" | "flying" | "crashed" | "landed" | "collect">("waiting");
   const [planePosition, setPlanePosition] = useState(0);
   const [isDemoMode, setIsDemoMode] = useState(true);
   const [balance, setBalance] = useState(1000);
@@ -34,22 +34,22 @@ export const GameInterface = () => {
     }
   }, []);
 
-  // Generate random multiplier boxes for each round
+  // Generate random multiplier boxes for each round with reasonable multipliers
   const generateMultiplierBoxes = () => {
     const boxes: MultiplierBox[] = [];
     for (let i = 0; i < 6; i++) {
       const rand = Math.random();
       let multiplier;
       
-      if (rand < 0.25) {
-        // 25% chance for bomb/reduction multipliers (0.1x - 0.8x)
-        multiplier = +(Math.random() * 0.7 + 0.1).toFixed(1);
-      } else if (rand < 0.7) {
-        // 45% chance for small multipliers (1.1x - 2.5x)
-        multiplier = +(Math.random() * 1.4 + 1.1).toFixed(1);
+      if (rand < 0.3) {
+        // 30% chance for reduction multipliers (0.5x - 0.9x)
+        multiplier = +(Math.random() * 0.4 + 0.5).toFixed(1);
+      } else if (rand < 0.8) {
+        // 50% chance for small to medium multipliers (1.1x - 3.0x)
+        multiplier = +(Math.random() * 1.9 + 1.1).toFixed(1);
       } else {
-        // 30% chance for big multipliers (2.6x - 8x)
-        multiplier = +(Math.random() * 5.4 + 2.6).toFixed(1);
+        // 20% chance for big multipliers (3.1x - 8x)
+        multiplier = +(Math.random() * 4.9 + 3.1).toFixed(1);
       }
 
       boxes.push({
@@ -85,7 +85,7 @@ export const GameInterface = () => {
               if (!box.hit && newPosition >= box.position - 2 && newPosition <= box.position + 2) {
                 // Plane hit this box
                 setCurrentMultiplier(prevMult => {
-                  const newMult = prevMult * box.multiplier;
+                  const newMult = Math.max(0.1, prevMult * box.multiplier);
                   setCurrentWinnings(parseFloat(betAmount) * newMult);
                   return newMult;
                 });
@@ -97,7 +97,7 @@ export const GameInterface = () => {
           });
           
           if (newPosition >= 90) {
-            setGameStatus("landed");
+            setGameStatus("collect");
             return 90;
           }
           return newPosition;
@@ -123,15 +123,12 @@ export const GameInterface = () => {
 
   const cashOut = () => {
     if (gameStatus === "flying") {
-      setGameStatus("landed");
-      setBalance(prev => prev + currentWinnings);
+      setGameStatus("collect");
     }
   };
 
-  const nextRound = () => {
-    if (gameStatus === "landed") {
-      setBalance(prev => prev + currentWinnings);
-    }
+  const collectWinnings = () => {
+    setBalance(prev => prev + currentWinnings);
     setGameStatus("waiting");
     setPlanePosition(0);
   };
@@ -152,26 +149,23 @@ export const GameInterface = () => {
       {/* Wallet Balance Header */}
       <div className="container mx-auto px-4 py-4">
         <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <div className="text-2xl font-bold text-white">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+              <div className="text-xl sm:text-2xl font-bold text-white">
                 ${balance.toFixed(2)} USDT
               </div>
               <div className="flex items-center space-x-2">
-                <span className={`text-sm font-medium ${isDemoMode ? 'text-yellow-400' : 'text-gray-400'}`}>
-                  DEMO
-                </span>
-                <Switch
-                  checked={!isDemoMode}
-                  onCheckedChange={toggleMode}
-                  className="data-[state=checked]:bg-green-500"
-                />
-                <span className={`text-sm font-medium ${!isDemoMode ? 'text-green-400' : 'text-gray-400'}`}>
-                  REAL
-                </span>
+                <Button
+                  onClick={toggleMode}
+                  variant="outline"
+                  size="sm"
+                  className={`${isDemoMode ? 'border-yellow-400 text-yellow-400' : 'border-green-400 text-green-400'}`}
+                >
+                  {isDemoMode ? 'Switch to Real' : 'Switch to Demo'}
+                </Button>
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-center sm:text-right">
               <div className="text-sm text-gray-400">Mode</div>
               <div className={`text-lg font-semibold ${isDemoMode ? 'text-yellow-400' : 'text-green-400'}`}>
                 {isDemoMode ? 'Demo Play' : 'Real Money'}
@@ -183,11 +177,11 @@ export const GameInterface = () => {
 
       {/* Game Arena */}
       <div className="container mx-auto px-4 pb-8">
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
           
           {/* Main Game Area */}
-          <div className="lg:col-span-2">
-            <Card className="bg-slate-800/50 border-cyan-500/20 p-6 h-96">
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <Card className="bg-slate-800/50 border-cyan-500/20 p-4 sm:p-6 h-64 sm:h-96">
               <div className="relative h-full bg-gradient-to-b from-blue-400/30 via-blue-600/20 to-blue-800/30 rounded-lg overflow-hidden">
                 
                 {/* Water and Sky Background */}
@@ -199,22 +193,22 @@ export const GameInterface = () => {
                   <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-blue-900/40 to-blue-600/30">
                     {/* Water waves */}
                     <div className="absolute inset-0 opacity-30">
-                      <Waves className="absolute bottom-10 left-10 h-6 w-6 text-blue-300 animate-pulse" />
-                      <Waves className="absolute bottom-16 left-32 h-4 w-4 text-blue-200 animate-pulse delay-500" />
-                      <Waves className="absolute bottom-12 left-56 h-5 w-5 text-blue-300 animate-pulse delay-1000" />
+                      <Waves className="absolute bottom-6 sm:bottom-10 left-6 sm:left-10 h-4 w-4 sm:h-6 sm:w-6 text-blue-300 animate-pulse" />
+                      <Waves className="absolute bottom-8 sm:bottom-16 left-16 sm:left-32 h-3 w-3 sm:h-4 sm:w-4 text-blue-200 animate-pulse delay-500" />
+                      <Waves className="absolute bottom-6 sm:bottom-12 left-28 sm:left-56 h-4 w-4 sm:h-5 sm:w-5 text-blue-300 animate-pulse delay-1000" />
                     </div>
                   </div>
                   
                   {/* Island at the end */}
-                  <div className="absolute bottom-0 right-4 w-24 h-16">
-                    <Mountain className="h-12 w-12 text-green-600" />
-                    <div className="absolute bottom-0 right-0 w-16 h-4 bg-green-700/60 rounded-full" />
+                  <div className="absolute bottom-0 right-2 sm:right-4 w-12 sm:w-24 h-8 sm:h-16">
+                    <Mountain className="h-6 w-6 sm:h-12 sm:w-12 text-green-600" />
+                    <div className="absolute bottom-0 right-0 w-8 sm:w-16 h-2 sm:h-4 bg-green-700/60 rounded-full" />
                   </div>
                 </div>
                 
                 {/* Flight Path */}
-                <div className="absolute inset-4 flex items-center">
-                  <div className="w-full h-2 bg-cyan-500/20 rounded-full relative">
+                <div className="absolute inset-2 sm:inset-4 flex items-center">
+                  <div className="w-full h-1 sm:h-2 bg-cyan-500/20 rounded-full relative">
                     {/* Flight progress */}
                     <div 
                       className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-100"
@@ -233,19 +227,19 @@ export const GameInterface = () => {
                     style={{ left: `${box.position}%`, transform: "translateX(-50%)" }}
                   >
                     {box.revealed ? (
-                      <div className={`px-3 py-2 rounded-lg border-2 font-bold text-sm ${
+                      <div className={`px-2 sm:px-3 py-1 sm:py-2 rounded-lg border-2 font-bold text-xs sm:text-sm ${
                         box.multiplier < 1 
                           ? "bg-red-500/80 border-red-400 text-red-100" 
                           : box.multiplier > 3
                           ? "bg-yellow-500/80 border-yellow-400 text-yellow-100"
                           : "bg-green-500/80 border-green-400 text-green-100"
                       }`}>
-                        {box.multiplier < 1 ? <Bomb className="h-3 w-3 inline mr-1" /> : <TrendingUp className="h-3 w-3 inline mr-1" />}
+                        {box.multiplier < 1 ? <Bomb className="h-2 w-2 sm:h-3 sm:w-3 inline mr-1" /> : <TrendingUp className="h-2 w-2 sm:h-3 sm:w-3 inline mr-1" />}
                         {box.multiplier}x
                       </div>
                     ) : (
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500/60 to-cyan-500/60 border-2 border-white/30 rounded-lg animate-pulse">
-                        <Gift className="h-4 w-4 text-white/80 m-2" />
+                      <div className="w-4 h-4 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500/60 to-cyan-500/60 border border-white/30 rounded-lg animate-pulse">
+                        <Gift className="h-2 w-2 sm:h-4 sm:w-4 text-white/80 m-1 sm:m-2" />
                       </div>
                     )}
                   </div>
@@ -256,34 +250,34 @@ export const GameInterface = () => {
                   className="absolute top-1/3 transition-all duration-100 ease-linear z-20"
                   style={{ left: `${planePosition}%`, transform: "translateX(-50%)" }}
                 >
-                  <Plane className="h-8 w-8 text-white transform rotate-12 animate-pulse drop-shadow-lg" />
+                  <Plane className="h-4 w-4 sm:h-8 sm:w-8 text-white transform rotate-12 animate-pulse drop-shadow-lg" />
                   {/* Plane trail */}
-                  <div className="absolute top-2 left-[-20px] w-4 h-1 bg-white/50 rounded-full animate-pulse" />
+                  <div className="absolute top-1 sm:top-2 left-[-10px] sm:left-[-20px] w-2 sm:w-4 h-0.5 sm:h-1 bg-white/50 rounded-full animate-pulse" />
                 </div>
 
                 {/* Current Multiplier Display */}
-                <div className="absolute top-4 left-4">
-                  <div className="bg-slate-900/80 rounded-lg px-4 py-2 border border-cyan-500/30">
-                    <div className="text-2xl font-bold text-cyan-400">
+                <div className="absolute top-2 sm:top-4 left-2 sm:left-4">
+                  <div className="bg-slate-900/80 rounded-lg px-2 sm:px-4 py-1 sm:py-2 border border-cyan-500/30">
+                    <div className="text-lg sm:text-2xl font-bold text-cyan-400">
                       {currentMultiplier.toFixed(2)}x
                     </div>
-                    <div className="text-sm text-gray-400">
+                    <div className="text-xs sm:text-sm text-gray-400">
                       ${currentWinnings.toFixed(2)}
                     </div>
                   </div>
                 </div>
 
                 {/* Game Status */}
-                <div className="absolute top-4 right-4">
-                  <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                <div className="absolute top-2 sm:top-4 right-2 sm:right-4">
+                  <div className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold ${
                     gameStatus === "waiting" ? "bg-yellow-500/20 text-yellow-400" :
                     gameStatus === "flying" ? "bg-green-500/20 text-green-400" :
-                    gameStatus === "landed" ? "bg-blue-500/20 text-blue-400" :
+                    gameStatus === "collect" ? "bg-blue-500/20 text-blue-400" :
                     "bg-red-500/20 text-red-400"
                   }`}>
                     {gameStatus === "waiting" ? "Ready for Takeoff" :
                      gameStatus === "flying" ? "Cruising to Island" :
-                     gameStatus === "landed" ? "Landed Safely" :
+                     gameStatus === "collect" ? "Landed Safely" :
                      "Crashed"}
                   </div>
                 </div>
@@ -292,9 +286,9 @@ export const GameInterface = () => {
           </div>
 
           {/* Betting Panel */}
-          <div className="space-y-4">
-            <Card className="bg-slate-800/50 border-cyan-500/20 p-6">
-              <h3 className="text-xl font-bold text-white mb-4">Place Your Bet</h3>
+          <div className="space-y-4 order-1 lg:order-2">
+            <Card className="bg-slate-800/50 border-cyan-500/20 p-4 sm:p-6">
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Place Your Bet</h3>
               
               <div className="space-y-4">
                 <div>
@@ -318,12 +312,12 @@ export const GameInterface = () => {
                   </p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setBetAmount("50")}
-                    className="border-slate-600 text-gray-300"
+                    className="border-slate-600 text-gray-300 text-xs"
                   >
                     $50
                   </Button>
@@ -331,7 +325,7 @@ export const GameInterface = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setBetAmount("100")}
-                    className="border-slate-600 text-gray-300"
+                    className="border-slate-600 text-gray-300 text-xs"
                   >
                     $100
                   </Button>
@@ -339,7 +333,7 @@ export const GameInterface = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setBetAmount((balance / 2).toString())}
-                    className="border-slate-600 text-gray-300"
+                    className="border-slate-600 text-gray-300 text-xs"
                   >
                     Half
                   </Button>
@@ -360,9 +354,16 @@ export const GameInterface = () => {
                   >
                     🏝️ Cash Out - ${currentWinnings.toFixed(2)}
                   </Button>
+                ) : gameStatus === "collect" ? (
+                  <Button 
+                    onClick={collectWinnings}
+                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3"
+                  >
+                    💰 Collect Winnings - ${currentWinnings.toFixed(2)}
+                  </Button>
                 ) : (
                   <Button 
-                    onClick={nextRound}
+                    onClick={() => setGameStatus("waiting")}
                     className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3"
                   >
                     🔄 Next Flight
@@ -373,8 +374,8 @@ export const GameInterface = () => {
 
             {/* Round Info */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
-              <h4 className="text-lg font-semibold text-white mb-2">This Round</h4>
-              <div className="space-y-2">
+              <h4 className="text-base sm:text-lg font-semibold text-white mb-2">This Round</h4>
+              <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Mystery Boxes:</span>
                   <span className="text-purple-400 font-semibold">{multiplierBoxes.length}</span>
