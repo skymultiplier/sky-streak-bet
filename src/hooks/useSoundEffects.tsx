@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 
 export const useSoundEffects = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
-  const backgroundMusicRef = useRef<AudioBufferSourceNode | null>(null);
+  const backgroundMusicRef = useRef<OscillatorNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
