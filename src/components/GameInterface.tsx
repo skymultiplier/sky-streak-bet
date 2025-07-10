@@ -102,22 +102,22 @@ export const GameInterface = () => {
     localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
   };
 
-  // Generate random multiplier boxes for each round with reasonable multipliers
+  // Generate random multiplier boxes for each round with challenging odds
   const generateMultiplierBoxes = () => {
     const boxes: MultiplierBox[] = [];
     for (let i = 0; i < 6; i++) {
       const rand = Math.random();
       let multiplier;
       
-      if (rand < 0.3) {
-        // 30% chance for reduction multipliers (0.5x - 0.9x)
-        multiplier = +(Math.random() * 0.4 + 0.5).toFixed(1);
-      } else if (rand < 0.8) {
-        // 50% chance for small to medium multipliers (1.1x - 3.0x)
-        multiplier = +(Math.random() * 1.9 + 1.1).toFixed(1);
+      if (rand < 0.55) {
+        // 55% chance for reduction multipliers (0.3x - 0.9x) - more bombs!
+        multiplier = +(Math.random() * 0.6 + 0.3).toFixed(1);
+      } else if (rand < 0.85) {
+        // 30% chance for small to medium multipliers (1.1x - 2.5x)
+        multiplier = +(Math.random() * 1.4 + 1.1).toFixed(1);
       } else {
-        // 20% chance for big multipliers (3.1x - 8x)
-        multiplier = +(Math.random() * 4.9 + 3.1).toFixed(1);
+        // 15% chance for big multipliers (2.6x - 5x) - reduced big wins
+        multiplier = +(Math.random() * 2.4 + 2.6).toFixed(1);
       }
 
       boxes.push({
