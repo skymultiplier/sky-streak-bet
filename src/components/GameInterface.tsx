@@ -109,14 +109,14 @@ export const GameInterface = () => {
       const rand = Math.random();
       let multiplier;
       
-      if (rand < 0.82) {
-        // 82% chance for reduction multipliers (0.1x - 0.8x) - much more bombs!
+      if (rand < 0.6) {
+        // 60% chance for reduction multipliers (0.1x - 0.8x) - bombs
         multiplier = +(Math.random() * 0.7 + 0.1).toFixed(1);
-      } else if (rand < 0.94) {
-        // 12% chance for small multipliers (1.1x - 1.8x)
+      } else if (rand < 0.85) {
+        // 25% chance for small multipliers (1.1x - 1.8x)
         multiplier = +(Math.random() * 0.7 + 1.1).toFixed(1);
       } else {
-        // 6% chance for medium multipliers (1.9x - 3x) - very rare big wins
+        // 15% chance for medium multipliers (1.9x - 3x) - decent wins
         multiplier = +(Math.random() * 1.1 + 1.9).toFixed(1);
       }
 
