@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Plane, TrendingUp, Bomb, DollarSign, Waves, Mountain, Gift, User } from "lucide-react";
+import { Link } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
 import { useSoundEffects } from "../hooks/useSoundEffects";
 
@@ -103,38 +104,30 @@ export const GameInterface = () => {
     localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
   };
 
-  // Generate random multiplier boxes with streak-based odds and specific multipliers
+  // Generate random multiplier boxes with mostly low odds (0.65-1.8x range)
   const generateMultiplierBoxes = () => {
     const boxes: MultiplierBox[] = [];
     
-    // Calculate streak bonus - more losses = better odds for wins
-    const streakBonus = Math.min(lossStreak * 0.1, 0.3); // Max 30% bonus
-    const baseWinRate = 0.4 + streakBonus; // Base 40% + streak bonus
+    // Calculate streak bonus - more losses = slightly better odds
+    const streakBonus = Math.min(lossStreak * 0.05, 0.15); // Max 15% bonus
     
     for (let i = 0; i < 6; i++) {
       const rand = Math.random();
       let multiplier;
       
-      // Specific multipliers with higher odds
-      if (rand < 0.12) {
-        // 12% chance for 0.5x (easier to hit)
-        multiplier = 0.5;
-      } else if (rand < 0.15) {
-        // 3% chance for 2x (easier to hit)
-        multiplier = 2.0;
-      } else if (rand < 0.17) {
-        // 2% chance for 3x (easier to hit)
-        multiplier = 3.0;
-      } else if (rand < 1 - baseWinRate) {
-        // Bombs (reduced by streak bonus)
-        multiplier = +(Math.random() * 0.7 + 0.1).toFixed(1);
-      } else if (rand < 0.85) {
-        // Small multipliers (1.1x - 1.8x)
-        multiplier = +(Math.random() * 0.7 + 1.1).toFixed(1);
+      if (rand < 0.75 - streakBonus) {
+        // 75% chance for low multipliers (0.65x - 1.8x) - mostly losing/break-even
+        multiplier = +(Math.random() * 1.15 + 0.65).toFixed(1);
+      } else if (rand < 0.90) {
+        // 15% chance for decent multipliers (1.9x - 2.5x)
+        multiplier = +(Math.random() * 0.6 + 1.9).toFixed(1);
+      } else if (rand < 0.96) {
+        // 6% chance for good multipliers (2.6x - 4x)
+        multiplier = +(Math.random() * 1.4 + 2.6).toFixed(1);
       } else {
-        // Big multipliers (4x - 8x) - increased with streak
-        const bigMultiplier = 4 + (Math.random() * 4) + (lossStreak * 0.5);
-        multiplier = +Math.min(bigMultiplier, 10).toFixed(1);
+        // 4% chance for big multipliers (4x - 8x) - very rare
+        const bigMultiplier = 4 + (Math.random() * 4) + (lossStreak * 0.3);
+        multiplier = +Math.min(bigMultiplier, 8).toFixed(1);
       }
 
       boxes.push({
@@ -299,10 +292,10 @@ export const GameInterface = () => {
         <div className="flex items-center space-x-4 bg-slate-800/50 backdrop-blur-sm border border-cyan-500/20 rounded-lg px-4 py-2">
           {/* Username Display */}
           {currentUser && (
-            <div className="flex items-center space-x-2">
+            <Link to="/my-account" className="flex items-center space-x-2 hover:bg-slate-700/50 rounded-lg px-2 py-1 transition-colors">
               <User className="h-4 w-4 text-cyan-400" />
               <span className="text-sm font-medium text-white">{currentUser}</span>
-            </div>
+            </Link>
           )}
           
           {/* Balance Display */}
