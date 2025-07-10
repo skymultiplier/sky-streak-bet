@@ -3,10 +3,20 @@ import { Card } from "@/components/ui/card";
 import { Trophy, TrendingUp, Clock, DollarSign } from "lucide-react";
 
 export const Leaderboard = () => {
+  // Generate random alphanumerical usernames
+  const generateUsername = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < Math.floor(Math.random() * 3) + 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
   // Generate random wins for this week
   const thisWeekWins = Array.from({ length: 10 }, (_, i) => ({
     id: i + 1,
-    username: `Player${Math.floor(Math.random() * 1000)}`,
+    username: generateUsername(),
     amount: Math.floor(Math.random() * 50000) + 5000,
     multiplier: (Math.random() * 50 + 2).toFixed(1),
     time: `${Math.floor(Math.random() * 6) + 1} days ago`
@@ -15,7 +25,7 @@ export const Leaderboard = () => {
   // Generate random wins for last 24 hours
   const last24HoursWins = Array.from({ length: 8 }, (_, i) => ({
     id: i + 1,
-    username: `Player${Math.floor(Math.random() * 1000)}`,
+    username: generateUsername(),
     amount: Math.floor(Math.random() * 25000) + 2000,
     multiplier: (Math.random() * 30 + 2).toFixed(1),
     time: `${Math.floor(Math.random() * 24) + 1}h ago`

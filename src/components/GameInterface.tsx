@@ -109,15 +109,15 @@ export const GameInterface = () => {
       const rand = Math.random();
       let multiplier;
       
-      if (rand < 0.55) {
-        // 55% chance for reduction multipliers (0.3x - 0.9x) - more bombs!
-        multiplier = +(Math.random() * 0.6 + 0.3).toFixed(1);
-      } else if (rand < 0.85) {
-        // 30% chance for small to medium multipliers (1.1x - 2.5x)
-        multiplier = +(Math.random() * 1.4 + 1.1).toFixed(1);
+      if (rand < 0.82) {
+        // 82% chance for reduction multipliers (0.1x - 0.8x) - much more bombs!
+        multiplier = +(Math.random() * 0.7 + 0.1).toFixed(1);
+      } else if (rand < 0.94) {
+        // 12% chance for small multipliers (1.1x - 1.8x)
+        multiplier = +(Math.random() * 0.7 + 1.1).toFixed(1);
       } else {
-        // 15% chance for big multipliers (2.6x - 5x) - reduced big wins
-        multiplier = +(Math.random() * 2.4 + 2.6).toFixed(1);
+        // 6% chance for medium multipliers (1.9x - 3x) - very rare big wins
+        multiplier = +(Math.random() * 1.1 + 1.9).toFixed(1);
       }
 
       boxes.push({
