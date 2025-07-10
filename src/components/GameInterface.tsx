@@ -104,30 +104,30 @@ export const GameInterface = () => {
     localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
   };
 
-  // Generate random multiplier boxes with mostly low odds (0.65-1.8x range)
+  // Generate random multiplier boxes - very conservative odds for slow progression
   const generateMultiplierBoxes = () => {
     const boxes: MultiplierBox[] = [];
     
     // Calculate streak bonus - more losses = slightly better odds
-    const streakBonus = Math.min(lossStreak * 0.05, 0.15); // Max 15% bonus
+    const streakBonus = Math.min(lossStreak * 0.03, 0.08); // Max 8% bonus
     
     for (let i = 0; i < 6; i++) {
       const rand = Math.random();
       let multiplier;
       
-      if (rand < 0.75 - streakBonus) {
-        // 75% chance for low multipliers (0.65x - 1.8x) - mostly losing/break-even
-        multiplier = +(Math.random() * 1.15 + 0.65).toFixed(1);
-      } else if (rand < 0.90) {
-        // 15% chance for decent multipliers (1.9x - 2.5x)
-        multiplier = +(Math.random() * 0.6 + 1.9).toFixed(1);
-      } else if (rand < 0.96) {
-        // 6% chance for good multipliers (2.6x - 4x)
-        multiplier = +(Math.random() * 1.4 + 2.6).toFixed(1);
+      if (rand < 0.85 - streakBonus) {
+        // 85% chance for losing/very low multipliers (0.5x - 1.2x) - mostly losing
+        multiplier = +(Math.random() * 0.7 + 0.5).toFixed(1);
+      } else if (rand < 0.95) {
+        // 10% chance for small profit multipliers (1.3x - 1.8x)
+        multiplier = +(Math.random() * 0.5 + 1.3).toFixed(1);
+      } else if (rand < 0.99) {
+        // 4% chance for decent multipliers (1.9x - 2.8x)
+        multiplier = +(Math.random() * 0.9 + 1.9).toFixed(1);
       } else {
-        // 4% chance for big multipliers (4x - 8x) - very rare
-        const bigMultiplier = 4 + (Math.random() * 4) + (lossStreak * 0.3);
-        multiplier = +Math.min(bigMultiplier, 8).toFixed(1);
+        // 1% chance for big multipliers (3x - 5x) - extremely rare
+        const bigMultiplier = 3 + (Math.random() * 2) + (lossStreak * 0.2);
+        multiplier = +Math.min(bigMultiplier, 5).toFixed(1);
       }
 
       boxes.push({
