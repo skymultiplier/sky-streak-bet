@@ -43,6 +43,7 @@ export const GameInterface = () => {
   const [currentWinnings, setCurrentWinnings] = useState(0);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [lossStreak, setLossStreak] = useState(0);
 
   const { playBetSound, playWinSound, startBackgroundMusic, stopBackgroundMusic } = useSoundEffects();
 
@@ -102,22 +103,38 @@ export const GameInterface = () => {
     localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
   };
 
-  // Generate random multiplier boxes for each round with challenging odds
+  // Generate random multiplier boxes with streak-based odds and specific multipliers
   const generateMultiplierBoxes = () => {
     const boxes: MultiplierBox[] = [];
+    
+    // Calculate streak bonus - more losses = better odds for wins
+    const streakBonus = Math.min(lossStreak * 0.1, 0.3); // Max 30% bonus
+    const baseWinRate = 0.4 + streakBonus; // Base 40% + streak bonus
+    
     for (let i = 0; i < 6; i++) {
       const rand = Math.random();
       let multiplier;
       
-      if (rand < 0.6) {
-        // 60% chance for reduction multipliers (0.1x - 0.8x) - bombs
+      // Specific multipliers with higher odds
+      if (rand < 0.12) {
+        // 12% chance for 0.5x (easier to hit)
+        multiplier = 0.5;
+      } else if (rand < 0.15) {
+        // 3% chance for 2x (easier to hit)
+        multiplier = 2.0;
+      } else if (rand < 0.17) {
+        // 2% chance for 3x (easier to hit)
+        multiplier = 3.0;
+      } else if (rand < 1 - baseWinRate) {
+        // Bombs (reduced by streak bonus)
         multiplier = +(Math.random() * 0.7 + 0.1).toFixed(1);
       } else if (rand < 0.85) {
-        // 25% chance for small multipliers (1.1x - 1.8x)
+        // Small multipliers (1.1x - 1.8x)
         multiplier = +(Math.random() * 0.7 + 1.1).toFixed(1);
       } else {
-        // 15% chance for medium multipliers (1.9x - 3x) - decent wins
-        multiplier = +(Math.random() * 1.1 + 1.9).toFixed(1);
+        // Big multipliers (4x - 8x) - increased with streak
+        const bigMultiplier = 4 + (Math.random() * 4) + (lossStreak * 0.5);
+        multiplier = +Math.min(bigMultiplier, 10).toFixed(1);
       }
 
       boxes.push({
@@ -218,9 +235,12 @@ export const GameInterface = () => {
     const finalMultiplier = currentMultiplier.toFixed(1) + "x";
     const isWin = currentWinnings > parseFloat(betAmount);
     
-    // Play win sound effect if player won
+    // Update loss streak based on win/loss
     if (isWin) {
+      setLossStreak(0); // Reset streak on win
       playWinSound();
+    } else {
+      setLossStreak(prev => prev + 1); // Increment streak on loss
     }
     
     // Add to bet history
