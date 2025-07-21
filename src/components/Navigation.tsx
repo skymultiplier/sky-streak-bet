@@ -46,7 +46,7 @@ export const Navigation = () => {
                 </Button>
               </Link>
               <Button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700">
-                Login
+                Login / Sign Up
               </Button>
             </div>
           )}
@@ -87,7 +87,7 @@ export const Navigation = () => {
                 </Button>
               </Link>
               <Button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 mt-2">
-                Login
+                Login / Sign Up
               </Button>
             </div>
           </div>

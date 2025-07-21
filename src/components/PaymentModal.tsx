@@ -92,8 +92,8 @@ export const PaymentModal = ({ isOpen, onClose, type, amount, onAmountChange }: 
               value={amount}
               onChange={(e) => onAmountChange(e.target.value)}
               className="bg-slate-700 border-slate-600 text-white"
-              placeholder="Enter amount"
-              min="10"
+              placeholder={type === 'deposit' ? 'Min: $100 USDT' : 'Min: $200 USDT'}
+              min={type === 'deposit' ? '100' : '200'}
             />
           </div>
 
@@ -191,7 +191,7 @@ export const PaymentModal = ({ isOpen, onClose, type, amount, onAmountChange }: 
             </Button>
             <Button
               onClick={handleConfirm}
-              disabled={!amount || parseFloat(amount) < 10 || isProcessing || countdown <= 0}
+              disabled={!amount || parseFloat(amount) < (type === 'deposit' ? 100 : 200) || isProcessing || countdown <= 0}
               className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
             >
               {isProcessing ? 'Processing...' : `Confirm ${type}`}

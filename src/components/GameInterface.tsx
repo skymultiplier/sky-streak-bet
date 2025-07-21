@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Plane, TrendingUp, Bomb, DollarSign, Waves, Mountain, Gift, User } from "lucide-react";
+import { Plane, TrendingUp, Bomb, DollarSign, Waves, Mountain, Gift, User, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
 import { useSoundEffects } from "../hooks/useSoundEffects";
@@ -34,7 +34,7 @@ interface Transaction {
 }
 
 export const GameInterface = () => {
-  const [betAmount, setBetAmount] = useState("50");
+  const [betAmount, setBetAmount] = useState("25");
   const [currentMultiplier, setCurrentMultiplier] = useState(1.0);
   const [gameStatus, setGameStatus] = useState<"waiting" | "flying" | "crashed" | "landed" | "collect">("waiting");
   const [planePosition, setPlanePosition] = useState(0);
@@ -45,6 +45,7 @@ export const GameInterface = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [lossStreak, setLossStreak] = useState(0);
+  const [showWinningEffect, setShowWinningEffect] = useState(false);
 
   const { playBetSound, playWinSound, startBackgroundMusic, stopBackgroundMusic } = useSoundEffects();
 
@@ -232,6 +233,9 @@ export const GameInterface = () => {
     if (isWin) {
       setLossStreak(0); // Reset streak on win
       playWinSound();
+      // Show winning visual effect
+      setShowWinningEffect(true);
+      setTimeout(() => setShowWinningEffect(false), 3000);
     } else {
       setLossStreak(prev => prev + 1); // Increment streak on loss
     }
@@ -240,7 +244,7 @@ export const GameInterface = () => {
     addBetToHistory({
       amount: parseFloat(betAmount),
       multiplier: finalMultiplier,
-      winnings: isWin ? currentWinnings : 0,
+      winnings: isWin ? currentWinnings : parseFloat(betAmount), // Show bet amount for losses
       time: new Date().toLocaleString(),
       status: isWin ? "won" : "lost"
     });
@@ -419,6 +423,33 @@ export const GameInterface = () => {
                   </div>
                 </div>
 
+                {/* Winning Effect Overlay */}
+                {showWinningEffect && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    {/* Confetti particles */}
+                    {[...Array(20)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute animate-bounce"
+                        style={{
+                          left: `${Math.random() * 100}%`,
+                          top: `${Math.random() * 100}%`,
+                          animationDelay: `${Math.random() * 2}s`,
+                          animationDuration: `${1 + Math.random()}s`
+                        }}
+                      >
+                        <Sparkles className="h-4 w-4 text-yellow-400" />
+                      </div>
+                    ))}
+                    {/* Winner text */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-3 rounded-lg font-bold text-lg animate-pulse shadow-lg">
+                        🎉 BIG WIN! 🎉
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Game Status */}
                 <div className="absolute top-2 sm:top-4 right-2 sm:right-4">
                   <div className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold ${
@@ -461,7 +492,7 @@ export const GameInterface = () => {
                     />
                   </div>
                   <p className="text-xs text-gray-400 mt-1">
-                    Balance: ${balance.toFixed(2)} | Min bet: $1
+                    Balance: ${balance.toFixed(2)} | Min bet: $25
                   </p>
                 </div>
 
@@ -469,10 +500,10 @@ export const GameInterface = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setBetAmount("50")}
+                    onClick={() => setBetAmount("25")}
                     className="border-slate-600 text-gray-300 text-xs"
                   >
-                    $50
+                    $25
                   </Button>
                   <Button
                     variant="outline"
@@ -495,7 +526,7 @@ export const GameInterface = () => {
                 {gameStatus === "waiting" ? (
                   <Button 
                     onClick={startGame}
-                    disabled={parseFloat(betAmount) > balance || parseFloat(betAmount) < 1}
+                    disabled={parseFloat(betAmount) > balance || parseFloat(betAmount) < 25}
                     className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 disabled:opacity-50"
                   >
                     🛫 Start Flying Now

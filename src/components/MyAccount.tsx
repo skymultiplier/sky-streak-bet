@@ -238,7 +238,7 @@ export const MyAccount = () => {
                   </Button>
 
                   <p className="text-sm text-gray-400 text-center">
-                    Minimum withdrawal: $10 USDT
+                    Minimum withdrawal: $200 USDT
                   </p>
                 </div>
               </Card>
