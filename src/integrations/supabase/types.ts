@@ -14,16 +14,143 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bets: {
+        Row: {
+          bet_amount: number
+          created_at: string
+          game_id: string | null
+          id: string
+          payout: number
+          status: Database["public"]["Enums"]["bet_status"]
+          user_id: string
+        }
+        Insert: {
+          bet_amount: number
+          created_at?: string
+          game_id?: string | null
+          id?: string
+          payout?: number
+          status?: Database["public"]["Enums"]["bet_status"]
+          user_id: string
+        }
+        Update: {
+          bet_amount?: number
+          created_at?: string
+          game_id?: string | null
+          id?: string
+          payout?: number
+          status?: Database["public"]["Enums"]["bet_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string
+          id: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          created_at?: string
+          id?: string
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          id?: string
+          type?: Database["public"]["Enums"]["transaction_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      deposit: {
+        Args: { _amount: number }
+        Returns: {
+          balance: number
+        }[]
+      }
+      get_user_balance: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      place_bet: {
+        Args: { _bet_amount: number; _game_id: string }
+        Returns: {
+          balance: number
+          bet_id: string
+        }[]
+      }
+      resolve_bet: {
+        Args: { _bet_id: string; _multiplier: number }
+        Returns: {
+          balance: number
+          payout: number
+          status: Database["public"]["Enums"]["bet_status"]
+        }[]
+      }
+      withdraw: {
+        Args: { _amount: number }
+        Returns: {
+          balance: number
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      bet_status: "pending" | "lost" | "won" | "cancelled"
+      transaction_type: "deposit" | "bet" | "win" | "withdrawal"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +277,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      bet_status: ["pending", "lost", "won", "cancelled"],
+      transaction_type: ["deposit", "bet", "win", "withdrawal"],
+    },
   },
 } as const
