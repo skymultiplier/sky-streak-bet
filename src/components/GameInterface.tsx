@@ -7,6 +7,9 @@ import { Plane, TrendingUp, Bomb, DollarSign, Waves, Mountain, Gift, User, Spark
 import { Link } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
 import { useSoundEffects } from "../hooks/useSoundEffects";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface MultiplierBox {
   id: number;
@@ -16,55 +19,23 @@ interface MultiplierBox {
   position: number;
 }
 
-interface BetHistoryEntry {
-  id: number;
-  amount: number;
-  multiplier: string;
-  winnings: number;
-  time: string;
-  status: "won" | "lost";
-}
-
-interface Transaction {
-  id: number;
-  type: "deposit" | "withdraw" | "bet" | "win";
-  amount: number;
-  time: string;
-  status: "completed" | "pending";
-}
-
 export const GameInterface = () => {
   const [betAmount, setBetAmount] = useState("25");
   const [currentMultiplier, setCurrentMultiplier] = useState(1.0);
   const [gameStatus, setGameStatus] = useState<"waiting" | "flying" | "crashed" | "landed" | "collect">("waiting");
   const [planePosition, setPlanePosition] = useState(0);
   const [isDemoMode, setIsDemoMode] = useState(true);
-  const [balance, setBalance] = useState(1000);
   const [multiplierBoxes, setMultiplierBoxes] = useState<MultiplierBox[]>([]);
   const [currentWinnings, setCurrentWinnings] = useState(0);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [lossStreak, setLossStreak] = useState(0);
   const [showWinningEffect, setShowWinningEffect] = useState(false);
+  const [currentBetId, setCurrentBetId] = useState<string | null>(null);
 
   const { playBetSound, playWinSound, startBackgroundMusic, stopBackgroundMusic } = useSoundEffects();
+  const { user, userProfile, refreshProfile, balance, username, isAuthenticated } = useAuth();
 
-  // Load user data from localStorage
   useEffect(() => {
-    const demoUser = localStorage.getItem('demoUser');
-    const savedUser = localStorage.getItem('currentUser');
-    
-    if (demoUser) {
-      const userData = JSON.parse(demoUser);
-      setBalance(userData.balance);
-      setIsDemoMode(userData.isDemo);
-    }
-    
-    if (savedUser) {
-      const user = JSON.parse(savedUser);
-      setCurrentUser(user.username);
-    }
-
     // Start background music when component mounts
     startBackgroundMusic();
 
@@ -72,38 +43,6 @@ export const GameInterface = () => {
       stopBackgroundMusic();
     };
   }, []);
-
-  // Save user data to localStorage
-  const saveUserData = (newBalance: number, isDemo: boolean) => {
-    const userData = {
-      balance: newBalance,
-      isDemo: isDemo
-    };
-    localStorage.setItem('demoUser', JSON.stringify(userData));
-    setBalance(newBalance);
-  };
-
-  // Add bet to history
-  const addBetToHistory = (bet: Omit<BetHistoryEntry, 'id'>) => {
-    const existingHistory = JSON.parse(localStorage.getItem('betHistory') || '[]');
-    const newBet = {
-      ...bet,
-      id: Date.now()
-    };
-    const updatedHistory = [newBet, ...existingHistory];
-    localStorage.setItem('betHistory', JSON.stringify(updatedHistory));
-  };
-
-  // Add transaction
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
-    const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-    const newTransaction = {
-      ...transaction,
-      id: Date.now()
-    };
-    const updatedTransactions = [newTransaction, ...existingTransactions];
-    localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-  };
 
   // Generate random multiplier boxes - very conservative odds for slow progression
   const generateMultiplierBoxes = () => {
@@ -187,36 +126,88 @@ export const GameInterface = () => {
     }
   }, [gameStatus, betAmount]);
 
-  const startGame = () => {
-    if (parseFloat(betAmount) > balance) {
-      alert("Insufficient balance!");
+  const startGame = async () => {
+    const betAmountNum = parseFloat(betAmount);
+    
+    if (isDemoMode) {
+      // Demo mode - use localStorage for now
+      startDemoGame();
       return;
     }
 
-    // Check if user is trying to play real money without being logged in
-    if (!isDemoMode && !currentUser) {
+    if (!isAuthenticated) {
       setShowAuthModal(true);
+      return;
+    }
+
+    if (betAmountNum > balance) {
+      toast({
+        title: "Insufficient Balance",
+        description: "You don't have enough funds to place this bet.",
+        variant: "destructive",
+      });
       return;
     }
     
     // Play bet sound effect
     playBetSound();
     
+    try {
+      // Place bet using Supabase
+      const { data, error } = await supabase.rpc('place_bet', {
+        _game_id: `game_${Date.now()}`,
+        _bet_amount: betAmountNum
+      });
+
+      if (error) {
+        toast({
+          title: "Bet Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setCurrentBetId(data[0].bet_id);
+      setGameStatus("flying");
+      setPlanePosition(0);
+      setCurrentMultiplier(1.0);
+      setCurrentWinnings(betAmountNum);
+      
+      // Refresh user profile to get updated balance
+      await refreshProfile();
+    } catch (error) {
+      console.error('Error placing bet:', error);
+      toast({
+        title: "Error",
+        description: "Failed to place bet. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const startDemoGame = () => {
+    // Demo mode logic (same as before)
+    const savedBalance = localStorage.getItem('demoBalance') || '1000';
+    const currentBalance = parseFloat(savedBalance);
+    
+    if (parseFloat(betAmount) > currentBalance) {
+      toast({
+        title: "Insufficient Balance",
+        description: "You don't have enough demo funds to place this bet.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    playBetSound();
     setGameStatus("flying");
     setPlanePosition(0);
     setCurrentMultiplier(1.0);
     setCurrentWinnings(parseFloat(betAmount));
     
-    const newBalance = balance - parseFloat(betAmount);
-    saveUserData(newBalance, isDemoMode);
-    
-    // Add bet transaction
-    addTransaction({
-      type: "bet",
-      amount: parseFloat(betAmount),
-      time: new Date().toLocaleString(),
-      status: "completed"
-    });
+    const newBalance = currentBalance - parseFloat(betAmount);
+    localStorage.setItem('demoBalance', newBalance.toString());
   };
 
   const cashOut = () => {
@@ -225,9 +216,78 @@ export const GameInterface = () => {
     }
   };
 
-  const collectWinnings = () => {
-    const finalMultiplier = currentMultiplier.toFixed(1) + "x";
+  const collectWinnings = async () => {
+    const finalMultiplier = currentMultiplier;
     const isWin = currentWinnings > parseFloat(betAmount);
+    
+    if (isDemoMode) {
+      // Demo mode logic
+      collectDemoWinnings(isWin, finalMultiplier);
+      return;
+    }
+
+    if (!currentBetId) {
+      toast({
+        title: "Error",
+        description: "No active bet found.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Resolve bet using Supabase
+      const { data, error } = await supabase.rpc('resolve_bet', {
+        _bet_id: currentBetId,
+        _multiplier: finalMultiplier
+      });
+
+      if (error) {
+        console.error('Error resolving bet:', error);
+        toast({
+          title: "Error",
+          description: "Failed to resolve bet.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update loss streak based on win/loss
+      if (isWin) {
+        setLossStreak(0); // Reset streak on win
+        playWinSound();
+        // Show winning visual effect
+        setShowWinningEffect(true);
+        setTimeout(() => setShowWinningEffect(false), 3000);
+        
+        toast({
+          title: "Congratulations!",
+          description: `You won $${data[0].payout.toFixed(2)}!`,
+        });
+      } else {
+        setLossStreak(prev => prev + 1); // Increment streak on loss
+      }
+      
+      // Refresh user profile to get updated balance
+      await refreshProfile();
+      
+    } catch (error) {
+      console.error('Error resolving bet:', error);
+      toast({
+        title: "Error",
+        description: "Failed to resolve bet.",
+        variant: "destructive",
+      });
+    }
+    
+    setGameStatus("waiting");
+    setPlanePosition(0);
+    setCurrentBetId(null);
+  };
+
+  const collectDemoWinnings = (isWin: boolean, finalMultiplier: number) => {
+    const savedBalance = localStorage.getItem('demoBalance') || '1000';
+    let currentBalance = parseFloat(savedBalance);
     
     // Update loss streak based on win/loss
     if (isWin) {
@@ -236,31 +296,30 @@ export const GameInterface = () => {
       // Show winning visual effect
       setShowWinningEffect(true);
       setTimeout(() => setShowWinningEffect(false), 3000);
+      
+      currentBalance += currentWinnings;
+      localStorage.setItem('demoBalance', currentBalance.toString());
+      
+      toast({
+        title: "Demo Win!",
+        description: `You won $${currentWinnings.toFixed(2)} in demo mode!`,
+      });
     } else {
       setLossStreak(prev => prev + 1); // Increment streak on loss
     }
     
-    // Add to bet history
-    addBetToHistory({
-      amount: parseFloat(betAmount),
-      multiplier: finalMultiplier,
-      winnings: isWin ? currentWinnings : parseFloat(betAmount), // Show bet amount for losses
-      time: new Date().toLocaleString(),
-      status: isWin ? "won" : "lost"
-    });
-
-    if (isWin) {
-      const newBalance = balance + currentWinnings;
-      saveUserData(newBalance, isDemoMode);
-      
-      // Add win transaction
-      addTransaction({
-        type: "win",
-        amount: currentWinnings,
-        time: new Date().toLocaleString(),
-        status: "completed"
-      });
-    }
+    // Add to demo bet history (localStorage)
+    const demoHistory = JSON.parse(localStorage.getItem('demoBetHistory') || '[]');
+    const newBet = {
+      id: Date.now(),
+      bet_amount: parseFloat(betAmount),
+      multiplier: finalMultiplier.toFixed(1) + 'x',
+      payout: isWin ? currentWinnings : 0,
+      created_at: new Date().toISOString(),
+      status: isWin ? 'won' : 'lost'
+    };
+    demoHistory.unshift(newBet);
+    localStorage.setItem('demoBetHistory', JSON.stringify(demoHistory.slice(0, 50))); // Keep last 50
     
     setGameStatus("waiting");
     setPlanePosition(0);
@@ -272,22 +331,27 @@ export const GameInterface = () => {
     
     if (newMode) {
       // Switching to demo mode
-      saveUserData(1000, true);
+      if (!localStorage.getItem('demoBalance')) {
+        localStorage.setItem('demoBalance', '1000');
+      }
     } else {
       // Switching to real mode - check if user is logged in
-      if (!currentUser) {
+      if (!isAuthenticated) {
         setShowAuthModal(true);
+        setIsDemoMode(true); // Keep in demo mode if not authenticated
         return;
       }
-      saveUserData(100, false);
     }
   };
 
   const handleLogin = (username: string) => {
-    setCurrentUser(username);
     setIsDemoMode(false);
-    setBalance(100); // Starting real balance
+    setShowAuthModal(false);
   };
+
+  const currentBalance = isDemoMode 
+    ? parseFloat(localStorage.getItem('demoBalance') || '1000')
+    : balance;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900">
@@ -295,17 +359,19 @@ export const GameInterface = () => {
       <div className="absolute top-4 right-4 z-50">
         <div className="flex items-center space-x-4 bg-slate-800/50 backdrop-blur-sm border border-cyan-500/20 rounded-lg px-4 py-2">
           {/* Username Display */}
-          {currentUser && (
+          {(username || isDemoMode) && (
             <Link to="/my-account" className="flex items-center space-x-2 hover:bg-slate-700/50 rounded-lg px-2 py-1 transition-colors">
               <User className="h-4 w-4 text-cyan-400" />
-              <span className="text-sm font-medium text-white">{currentUser}</span>
+              <span className="text-sm font-medium text-white">
+                {isDemoMode ? 'Demo User' : (username || 'User')}
+              </span>
             </Link>
           )}
           
           {/* Balance Display */}
           <div className="text-right">
             <div className="text-lg font-bold text-cyan-400">
-              ${balance.toFixed(2)} USDT
+              ${currentBalance.toFixed(2)} USDT
             </div>
             <div className={`text-xs font-medium ${
               isDemoMode ? 'text-yellow-400' : 'text-green-400'
@@ -458,9 +524,9 @@ export const GameInterface = () => {
                     gameStatus === "collect" ? "bg-blue-500/20 text-blue-400" :
                     "bg-red-500/20 text-red-400"
                   }`}>
-                    {gameStatus === "waiting" ? "Ready for Takeoff" :
-                     gameStatus === "flying" ? "Cruising to Island" :
-                     gameStatus === "collect" ? "Landed Safely" :
+                    {gameStatus === "waiting" ? "Ready" :
+                     gameStatus === "flying" ? "Flying" :
+                     gameStatus === "collect" ? "Collect!" :
                      "Crashed"}
                   </div>
                 </div>
@@ -468,106 +534,136 @@ export const GameInterface = () => {
             </Card>
           </div>
 
-          {/* Betting Panel - Right Side */}
+          {/* Control Panel - Right Side */}
           <div className="w-full lg:w-80 space-y-4">
-            {/* Betting Controls */}
+            
+            {/* Bet Controls */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
-              <h3 className="text-lg font-bold text-white mb-4">Place Your Bet</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">✈️ Flight Controls</h3>
               
               <div className="space-y-4">
+                {/* Bet Amount */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Bet Amount (USDT)
                   </label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input
-                      type="number"
-                      value={betAmount}
-                      onChange={(e) => setBetAmount(e.target.value)}
-                      className="pl-10 bg-slate-700 border-slate-600 text-white"
-                      min="1"
-                      max={balance}
-                      step="10"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Balance: ${balance.toFixed(2)} | Min bet: $25
-                  </p>
+                  <Input
+                    type="number"
+                    value={betAmount}
+                    onChange={(e) => setBetAmount(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                    placeholder="Enter bet amount"
+                    min="1"
+                    step="0.01"
+                    disabled={gameStatus !== "waiting"}
+                  />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setBetAmount("25")}
-                    className="border-slate-600 text-gray-300 text-xs"
-                  >
-                    $25
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setBetAmount("100")}
-                    className="border-slate-600 text-gray-300 text-xs"
-                  >
-                    $100
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setBetAmount((balance / 2).toString())}
-                    className="border-slate-600 text-gray-300 text-xs"
-                  >
-                    Half
-                  </Button>
+                {/* Quick Bet Buttons */}
+                <div className="grid grid-cols-4 gap-2">
+                  {[10, 25, 50, 100].map((amount) => (
+                    <Button
+                      key={amount}
+                      variant="outline"
+                      size="sm"
+                      className="border-slate-600 text-gray-300 hover:bg-slate-700"
+                      onClick={() => setBetAmount(amount.toString())}
+                      disabled={gameStatus !== "waiting"}
+                    >
+                      ${amount}
+                    </Button>
+                  ))}
                 </div>
 
-                {gameStatus === "waiting" ? (
-                  <Button 
+                {/* Max Bet Button */}
+                <Button
+                  variant="outline"
+                  className="w-full border-slate-600 text-gray-300 hover:bg-slate-700"
+                  onClick={() => setBetAmount(Math.floor(currentBalance).toString())}
+                  disabled={gameStatus !== "waiting"}
+                >
+                  Max Bet (${Math.floor(currentBalance)})
+                </Button>
+
+                {/* Bet/Cash Out Button */}
+                {gameStatus === "waiting" && (
+                  <Button
                     onClick={startGame}
-                    disabled={parseFloat(betAmount) > balance || parseFloat(betAmount) < 25}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 disabled:opacity-50"
+                    disabled={!betAmount || parseFloat(betAmount) <= 0 || parseFloat(betAmount) > currentBalance}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 text-lg"
                   >
-                    🛫 Start Flying Now
+                    🚀 Place Bet & Fly!
                   </Button>
-                ) : gameStatus === "flying" ? (
-                  <Button 
+                )}
+
+                {gameStatus === "flying" && (
+                  <Button
                     onClick={cashOut}
-                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white font-bold py-3 animate-pulse"
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-3 text-lg animate-pulse"
                   >
-                    🏝️ Cash Out - ${currentWinnings.toFixed(2)}
+                    💰 Cash Out ${currentWinnings.toFixed(2)}
                   </Button>
-                ) : gameStatus === "collect" ? (
-                  <Button 
+                )}
+
+                {(gameStatus === "collect" || gameStatus === "crashed") && (
+                  <Button
                     onClick={collectWinnings}
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3"
+                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-bold py-3 text-lg"
                   >
-                    💰 Collect Winnings - ${currentWinnings.toFixed(2)}
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={() => setGameStatus("waiting")}
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3"
-                  >
-                    🔄 Next Flight
+                    🎁 Collect Winnings
                   </Button>
                 )}
               </div>
             </Card>
 
-            {/* Round Info */}
+            {/* Recent Results */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
-              <h4 className="text-base font-semibold text-white mb-2">This Round</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Mystery Boxes:</span>
-                  <span className="text-purple-400 font-semibold">{multiplierBoxes.length}</span>
+              <h3 className="text-lg font-semibold text-white mb-4">📊 Game Stats</h3>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Current Balance:</span>
+                  <span className="text-cyan-400 font-bold">${currentBalance.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Destination:</span>
-                  <span className="text-green-400 font-semibold">🏝️ Island</span>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Loss Streak:</span>
+                  <span className={`font-bold ${lossStreak > 5 ? 'text-red-400' : lossStreak > 2 ? 'text-yellow-400' : 'text-green-400'}`}>
+                    {lossStreak}
+                  </span>
                 </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Mode:</span>
+                  <span className={`font-bold ${isDemoMode ? 'text-yellow-400' : 'text-green-400'}`}>
+                    {isDemoMode ? 'Demo' : 'Real Money'}
+                  </span>
+                </div>
+              </div>
+            </Card>
+
+            {/* Navigation Links */}
+            <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
+              <h3 className="text-lg font-semibold text-white mb-4">🔗 Quick Links</h3>
+              
+              <div className="space-y-2">
+                <Link to="/history">
+                  <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
+                    📈 Betting History
+                  </Button>
+                </Link>
+                
+                <Link to="/leaderboard">
+                  <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
+                    🏆 Leaderboard
+                  </Button>
+                </Link>
+                
+                <Link to="/my-account">
+                  <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
+                    💳 My Account
+                  </Button>
+                </Link>
               </div>
             </Card>
           </div>

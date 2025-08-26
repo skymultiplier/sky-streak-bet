@@ -1,70 +1,57 @@
 
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet, ArrowUpRight, ArrowDownLeft, Bitcoin, DollarSign, CreditCard, Banknote, Clock, TrendingUp } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Wallet, ArrowUpRight, ArrowDownLeft, Bitcoin, DollarSign, CreditCard, Banknote, Clock, TrendingUp, LogOut } from "lucide-react";
 import { PaymentModal } from "./PaymentModal";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface Transaction {
-  id: number;
-  type: "deposit" | "withdraw" | "bet" | "win";
+  id: string;
+  type: "deposit" | "withdrawal" | "bet" | "win";
   amount: number;
-  time: string;
-  status: "completed" | "pending";
+  created_at: string;
+  balance_after: number;
 }
 
 export const MyAccount = () => {
-  const [isDemoMode, setIsDemoMode] = useState(true);
-  const [balance, setBalance] = useState(1000);
+  const { user, userProfile, loading, signOut, refreshProfile, balance, username } = useAuth();
+  const [isDemoMode, setIsDemoMode] = useState(false); // Always real mode with Supabase
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentType, setPaymentType] = useState<'deposit' | 'withdraw'>('deposit');
   const [amount, setAmount] = useState('');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  // Load user data and transactions from localStorage
+  // Load user transactions from Supabase
   useEffect(() => {
-    const demoUser = localStorage.getItem('demoUser');
-    const savedTransactions = localStorage.getItem('transactions');
-    
-    if (demoUser) {
-      const userData = JSON.parse(demoUser);
-      setBalance(userData.balance);
-      setIsDemoMode(userData.isDemo);
+    if (user) {
+      fetchTransactions();
     }
+  }, [user]);
+
+  const fetchTransactions = async () => {
+    if (!user) return;
     
-    if (savedTransactions) {
-      setTransactions(JSON.parse(savedTransactions));
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching transactions:', error);
+        return;
+      }
+
+      setTransactions(data || []);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
     }
-  }, []);
-
-  // Listen for balance updates
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const demoUser = localStorage.getItem('demoUser');
-      const savedTransactions = localStorage.getItem('transactions');
-      
-      if (demoUser) {
-        const userData = JSON.parse(demoUser);
-        setBalance(userData.balance);
-        setIsDemoMode(userData.isDemo);
-      }
-      
-      if (savedTransactions) {
-        setTransactions(JSON.parse(savedTransactions));
-      }
-    };
-
-    // Listen for storage changes
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also check periodically for updates from the same tab
-    const interval = setInterval(handleStorageChange, 1000);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
-  }, []);
+  };
 
   const handleDeposit = (method: string) => {
     setPaymentType('deposit');
@@ -76,21 +63,20 @@ export const MyAccount = () => {
     setShowPaymentModal(true);
   };
 
-  const toggleMode = () => {
-    const newMode = !isDemoMode;
-    const userData = {
-      balance: newMode ? 1000 : 0,
-      isDemo: newMode
-    };
-    localStorage.setItem('demoUser', JSON.stringify(userData));
-    setBalance(userData.balance);
-    setIsDemoMode(newMode);
+  const handleSignOut = async () => {
+    const success = await signOut();
+    if (success) {
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+    }
   };
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'deposit': return <ArrowDownLeft className="h-4 w-4 text-green-400" />;
-      case 'withdraw': return <ArrowUpRight className="h-4 w-4 text-cyan-400" />;
+      case 'withdrawal': return <ArrowUpRight className="h-4 w-4 text-cyan-400" />;
       case 'bet': return <DollarSign className="h-4 w-4 text-red-400" />;
       case 'win': return <TrendingUp className="h-4 w-4 text-green-400" />;
       default: return <DollarSign className="h-4 w-4 text-gray-400" />;
@@ -101,11 +87,30 @@ export const MyAccount = () => {
     switch (type) {
       case 'deposit':
       case 'win': return 'text-green-400';
-      case 'withdraw':
+      case 'withdrawal':
       case 'bet': return 'text-red-400';
       default: return 'text-gray-400';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900 flex items-center justify-center">
+        <div className="text-cyan-400 text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Please sign in to view your account</h2>
+          <p className="text-gray-400">You need to be logged in to access your account.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900 py-8">
@@ -131,48 +136,34 @@ export const MyAccount = () => {
                 <div>
                   <h2 className="text-2xl font-bold text-white">Wallet Balance</h2>
                   <p className="text-gray-400">
-                    {isDemoMode ? 'Demo Account' : 'Real Account'}
+                    {username ? `Welcome, ${username}` : 'Real Account'}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-4xl font-bold text-cyan-400 mb-2">
-                  ${balance.toFixed(2)} USDT
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  <div className="text-4xl font-bold text-cyan-400 mb-2">
+                    ${balance.toFixed(2)} USDT
+                  </div>
+                  <div className="bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded-full text-sm font-semibold">
+                    REAL MONEY
+                  </div>
                 </div>
-                <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                  isDemoMode 
-                    ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' 
-                    : 'bg-green-500/20 text-green-400 border border-green-500/30'
-                }`}>
-                  {isDemoMode ? 'DEMO MODE' : 'REAL MONEY'}
-                </div>
-              </div>
-            </div>
-
-            {/* Mode Toggle */}
-            <div className="flex justify-center mb-6">
-              <div className="bg-slate-700/50 rounded-lg p-1 flex">
                 <Button
-                  variant={isDemoMode ? "default" : "ghost"}
-                  onClick={() => !isDemoMode && toggleMode()}
-                  className={`${isDemoMode ? 'bg-yellow-500 text-black' : 'text-gray-400'}`}
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="border-red-500/30 text-red-400 hover:bg-red-500/20"
                 >
-                  Switch to Demo
-                </Button>
-                <Button
-                  variant={!isDemoMode ? "default" : "ghost"}
-                  onClick={() => isDemoMode && toggleMode()}
-                  className={`${!isDemoMode ? 'bg-green-500 text-black' : 'text-gray-400'}`}
-                >
-                  Switch to Real
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
                 </Button>
               </div>
             </div>
           </Card>
 
           {/* Deposit/Withdraw Options */}
-          {!isDemoMode && (
-            <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
               
               {/* Deposit */}
               <Card className="bg-slate-800/50 border-cyan-500/20 p-6">
@@ -242,23 +233,7 @@ export const MyAccount = () => {
                   </p>
                 </div>
               </Card>
-            </div>
-          )}
-
-          {/* Demo Mode Message */}
-          {isDemoMode && (
-            <Card className="bg-yellow-500/10 border-yellow-500/30 p-6">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-yellow-400 mb-2">
-                  Demo Mode Active
-                </h3>
-                <p className="text-gray-300">
-                  You're currently in demo mode. Switch to real money mode to access deposit and withdrawal options.
-                  Demo funds cannot be withdrawn.
-                </p>
-              </div>
-            </Card>
-          )}
+          </div>
 
           {/* Recent Transactions */}
           <Card className="bg-slate-800/50 border-cyan-500/20 p-6">
@@ -266,10 +241,10 @@ export const MyAccount = () => {
             <div className="space-y-3">
               {transactions.length === 0 ? (
                 <p className="text-gray-400 text-center py-8">
-                  {isDemoMode ? 'No transactions in demo mode' : 'No recent transactions'}
+                  No recent transactions
                 </p>
               ) : (
-                transactions.slice(0, 10).map((transaction) => (
+                transactions.map((transaction) => (
                   <div 
                     key={transaction.id}
                     className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg"
@@ -282,7 +257,7 @@ export const MyAccount = () => {
                         </div>
                         <div className="text-gray-400 text-sm flex items-center">
                           <Clock className="h-3 w-3 mr-1" />
-                          {transaction.time}
+                          {new Date(transaction.created_at).toLocaleString()}
                         </div>
                       </div>
                     </div>
@@ -291,12 +266,8 @@ export const MyAccount = () => {
                         {transaction.type === 'deposit' || transaction.type === 'win' ? '+' : '-'}
                         ${transaction.amount.toFixed(2)}
                       </div>
-                      <div className={`text-xs px-2 py-1 rounded ${
-                        transaction.status === 'completed' 
-                          ? 'bg-green-500/20 text-green-400' 
-                          : 'bg-yellow-500/20 text-yellow-400'
-                      }`}>
-                        {transaction.status}
+                      <div className="text-xs text-gray-400">
+                        Balance: ${transaction.balance_after.toFixed(2)}
                       </div>
                     </div>
                   </div>

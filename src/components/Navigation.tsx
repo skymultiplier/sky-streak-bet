@@ -4,10 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Plane, Wallet, History, Trophy, Menu, X, User } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "react-router-dom";
+import { AuthModal } from "./AuthModal";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const isMobile = useIsMobile();
+  const { user, username } = useAuth();
+
+  const handleLogin = (username: string) => {
+    setShowAuthModal(false);
+  };
 
   return (
     <nav className="bg-slate-900/95 backdrop-blur-sm border-b border-cyan-500/20 sticky top-0 z-50">
@@ -39,15 +47,21 @@ export const Navigation = () => {
                   History
                 </Button>
               </Link>
-              <Link to="/my-account">
-                <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
-                  <User className="h-4 w-4 mr-2" />
-                  My Account
+              {user ? (
+                <Link to="/my-account">
+                  <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
+                    <User className="h-4 w-4 mr-2" />
+                    {username || 'Account'}
+                  </Button>
+                </Link>
+              ) : (
+                <Button 
+                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
+                  onClick={() => setShowAuthModal(true)}
+                >
+                  Login / Sign Up
                 </Button>
-              </Link>
-              <Button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700">
-                Login / Sign Up
-              </Button>
+              )}
             </div>
           )}
 
@@ -80,19 +94,31 @@ export const Navigation = () => {
                   History
                 </Button>
               </Link>
-              <Link to="/my-account">
-                <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">
-                  <User className="h-4 w-4 mr-2" />
-                  My Account
+              {user ? (
+                <Link to="/my-account">
+                  <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">
+                    <User className="h-4 w-4 mr-2" />
+                    {username || 'Account'}
+                  </Button>
+                </Link>
+              ) : (
+                <Button 
+                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 mt-2"
+                  onClick={() => setShowAuthModal(true)}
+                >
+                  Login / Sign Up
                 </Button>
-              </Link>
-              <Button className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 mt-2">
-                Login / Sign Up
-              </Button>
+              )}
             </div>
           </div>
         )}
       </div>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={handleLogin}
+      />
     </nav>
   );
 };

@@ -2,49 +2,92 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Clock, TrendingUp, TrendingDown, Plane } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BetHistoryEntry {
-  id: number;
-  amount: number;
-  multiplier: string;
-  winnings: number;
-  time: string;
-  status: "won" | "lost";
+  id: string;
+  bet_amount: number;
+  payout: number;
+  created_at: string;
+  status: "won" | "lost" | "pending" | "cancelled";
+  game_id: string | null;
 }
 
 export const History = () => {
+  const { user, loading } = useAuth();
   const [betHistory, setBetHistory] = useState<BetHistoryEntry[]>([]);
   const [totalWinnings, setTotalWinnings] = useState(0);
   const [bestMultiplier, setBestMultiplier] = useState("0x");
   const [flightsToday, setFlightsToday] = useState(0);
 
   useEffect(() => {
-    // Load bet history from localStorage
-    const savedHistory = localStorage.getItem('betHistory');
-    if (savedHistory) {
-      const history = JSON.parse(savedHistory);
-      setBetHistory(history);
+    if (user) {
+      fetchBetHistory();
+    }
+  }, [user]);
+
+  const fetchBetHistory = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('bets')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching bet history:', error);
+        return;
+      }
+
+      setBetHistory(data || []);
       
       // Calculate stats
-      const totalWins = history.reduce((sum: number, bet: BetHistoryEntry) => 
-        sum + (bet.status === 'won' ? bet.winnings : 0), 0);
+      const totalWins = data?.reduce((sum, bet) => 
+        sum + (bet.status === 'won' ? bet.payout : 0), 0) || 0;
       setTotalWinnings(totalWins);
       
       // Find best multiplier
-      const best = history.reduce((max: string, bet: BetHistoryEntry) => {
-        const currentMult = parseFloat(bet.multiplier.replace('x', ''));
-        const maxMult = parseFloat(max.replace('x', ''));
-        return currentMult > maxMult ? bet.multiplier : max;
-      }, "0x");
+      const best = data?.reduce((max, bet) => {
+        if (bet.status === 'won' && bet.payout > 0) {
+          const currentMult = bet.payout / bet.bet_amount;
+          const maxMult = parseFloat(max.replace('x', ''));
+          return currentMult > maxMult ? currentMult.toFixed(1) + 'x' : max;
+        }
+        return max;
+      }, "0x") || "0x";
       setBestMultiplier(best);
       
       // Count today's flights
       const today = new Date().toDateString();
-      const todayFlights = history.filter((bet: BetHistoryEntry) => 
-        new Date(bet.time).toDateString() === today).length;
+      const todayFlights = data?.filter(bet => 
+        new Date(bet.created_at).toDateString() === today).length || 0;
       setFlightsToday(todayFlights);
+    } catch (error) {
+      console.error('Error fetching bet history:', error);
     }
-  }, []);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900 flex items-center justify-center">
+        <div className="text-cyan-400 text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Please sign in to view your history</h2>
+          <p className="text-gray-400">You need to be logged in to view your betting history.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900 py-8">
@@ -96,29 +139,32 @@ export const History = () => {
                       {/* Time */}
                       <div className="flex items-center text-gray-400">
                         <Clock className="h-4 w-4 mr-2" />
-                        {new Date(bet.time).toLocaleTimeString()}
+                        {new Date(bet.created_at).toLocaleTimeString()}
                       </div>
 
                       {/* Bet Amount */}
                       <div className="font-semibold text-white">
-                        ${bet.amount}
+                        ${bet.bet_amount.toFixed(2)}
                       </div>
 
                       {/* Multiplier */}
                       <div>
                         <span className={`inline-flex items-center border rounded-full px-3 py-1 text-sm font-semibold ${
-                          parseFloat(bet.multiplier.replace('x', '')) >= 1 
+                          bet.status === 'won' && bet.payout > bet.bet_amount
                             ? "bg-green-500/20 border-green-500/30 text-green-400"
                             : "bg-red-500/20 border-red-500/30 text-red-400"
                         }`}>
                           <Plane className="h-3 w-3 mr-1" />
-                          {bet.multiplier}
+                          {bet.status === 'won' && bet.payout > 0 
+                            ? (bet.payout / bet.bet_amount).toFixed(1) + 'x'
+                            : '0.0x'
+                          }
                         </span>
                       </div>
 
                       {/* Winnings */}
                       <div className={`font-bold ${bet.status === 'won' ? 'text-green-400' : 'text-red-400'}`}>
-                        {bet.status === 'won' ? `$${bet.winnings.toFixed(2)}` : '$0'}
+                        {bet.status === 'won' ? `$${bet.payout.toFixed(2)}` : '$0.00'}
                       </div>
 
                       {/* Status */}
