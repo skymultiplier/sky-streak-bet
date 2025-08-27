@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Wallet, ArrowUpRight, ArrowDownLeft, Bitcoin, DollarSign, CreditCard, Banknote, Clock, TrendingUp, LogOut } from "lucide-react";
-import { PaymentModal } from "./PaymentModal";
+import { EnhancedPaymentModal } from "./EnhancedPaymentModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -278,7 +278,7 @@ export const MyAccount = () => {
         </div>
       </div>
 
-      <PaymentModal
+      <EnhancedPaymentModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         type={paymentType}

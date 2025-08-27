@@ -20,7 +20,7 @@ interface MultiplierBox {
 }
 
 export const GameInterface = () => {
-  const [betAmount, setBetAmount] = useState("25");
+  const [betAmount, setBetAmount] = useState("10");
   const [currentMultiplier, setCurrentMultiplier] = useState(1.0);
   const [gameStatus, setGameStatus] = useState<"waiting" | "flying" | "crashed" | "landed" | "collect">("waiting");
   const [planePosition, setPlanePosition] = useState(0);
@@ -44,30 +44,50 @@ export const GameInterface = () => {
     };
   }, []);
 
-  // Generate random multiplier boxes - very conservative odds for slow progression
+  // Generate random multiplier boxes - improved odds for demo mode to be more enticing
   const generateMultiplierBoxes = () => {
     const boxes: MultiplierBox[] = [];
     
-    // Calculate streak bonus - more losses = slightly better odds
-    const streakBonus = Math.min(lossStreak * 0.03, 0.08); // Max 8% bonus
+    // Calculate streak bonus - more losses = better odds
+    const streakBonus = Math.min(lossStreak * 0.05, 0.15); // Max 15% bonus for demo
+    const demoBonus = isDemoMode ? 0.1 : 0; // Extra 10% for demo mode to be more enticing
     
     for (let i = 0; i < 6; i++) {
       const rand = Math.random();
       let multiplier;
       
-      if (rand < 0.85 - streakBonus) {
-        // 85% chance for losing/very low multipliers (0.5x - 1.2x) - mostly losing
-        multiplier = +(Math.random() * 0.7 + 0.5).toFixed(1);
-      } else if (rand < 0.95) {
-        // 10% chance for small profit multipliers (1.3x - 1.8x)
-        multiplier = +(Math.random() * 0.5 + 1.3).toFixed(1);
-      } else if (rand < 0.99) {
-        // 4% chance for decent multipliers (1.9x - 2.8x)
-        multiplier = +(Math.random() * 0.9 + 1.9).toFixed(1);
+      if (isDemoMode) {
+        // Demo mode - more generous odds for better experience
+        if (rand < 0.65 - streakBonus - demoBonus) {
+          // 65% chance for small wins/break-even (0.8x - 1.4x) - mostly winning in demo
+          multiplier = +(Math.random() * 0.6 + 0.8).toFixed(1);
+        } else if (rand < 0.85) {
+          // 20% chance for good multipliers (1.5x - 2.5x)
+          multiplier = +(Math.random() * 1.0 + 1.5).toFixed(1);
+        } else if (rand < 0.97) {
+          // 12% chance for great multipliers (2.6x - 4x)
+          multiplier = +(Math.random() * 1.4 + 2.6).toFixed(1);
+        } else {
+          // 3% chance for amazing multipliers (4x - 6x) - more common in demo
+          const bigMultiplier = 4 + (Math.random() * 2) + (lossStreak * 0.3);
+          multiplier = +Math.min(bigMultiplier, 6).toFixed(1);
+        }
       } else {
-        // 1% chance for big multipliers (3x - 5x) - extremely rare
-        const bigMultiplier = 3 + (Math.random() * 2) + (lossStreak * 0.2);
-        multiplier = +Math.min(bigMultiplier, 5).toFixed(1);
+        // Real mode - conservative odds
+        if (rand < 0.85 - streakBonus) {
+          // 85% chance for losing/very low multipliers (0.5x - 1.2x) - mostly losing
+          multiplier = +(Math.random() * 0.7 + 0.5).toFixed(1);
+        } else if (rand < 0.95) {
+          // 10% chance for small profit multipliers (1.3x - 1.8x)
+          multiplier = +(Math.random() * 0.5 + 1.3).toFixed(1);
+        } else if (rand < 0.99) {
+          // 4% chance for decent multipliers (1.9x - 2.8x)
+          multiplier = +(Math.random() * 0.9 + 1.9).toFixed(1);
+        } else {
+          // 1% chance for big multipliers (3x - 5x) - extremely rare
+          const bigMultiplier = 3 + (Math.random() * 2) + (lossStreak * 0.2);
+          multiplier = +Math.min(bigMultiplier, 5).toFixed(1);
+        }
       }
 
       boxes.push({
@@ -552,8 +572,8 @@ export const GameInterface = () => {
                     value={betAmount}
                     onChange={(e) => setBetAmount(e.target.value)}
                     className="bg-slate-700 border-slate-600 text-white"
-                    placeholder="Enter bet amount"
-                    min="1"
+                    placeholder="Min: $10"
+                    min="10"
                     step="0.01"
                     disabled={gameStatus !== "waiting"}
                   />

@@ -44,57 +44,75 @@ export const useSoundEffects = () => {
   };
 
   const playBetSound = () => {
-    // Ascending chord for placing bet
-    createTone(440, 0.2); // A
-    setTimeout(() => createTone(554.37, 0.2), 100); // C#
-    setTimeout(() => createTone(659.25, 0.3), 200); // E
+    // Flight takeoff sequence - radio communication style
+    createTone(800, 0.15, 'square'); // Radio static
+    setTimeout(() => createTone(440, 0.4), 200); // "Sky Multiplier, you are cleared for takeoff"
+    setTimeout(() => createTone(554.37, 0.3), 400); // Engine rev
+    setTimeout(() => createTone(659.25, 0.5), 700); // Takeoff confirmation
   };
 
   const playWinSound = () => {
-    // Victory fanfare
-    createTone(523.25, 0.3); // C
-    setTimeout(() => createTone(659.25, 0.3), 150); // E
-    setTimeout(() => createTone(783.99, 0.3), 300); // G
-    setTimeout(() => createTone(1046.5, 0.5), 450); // C (octave)
+    // Landing confirmation with radio chatter
+    createTone(800, 0.1, 'square'); // Radio static
+    setTimeout(() => createTone(659.25, 0.3), 100); // "Touchdown confirmed"
+    setTimeout(() => createTone(783.99, 0.3), 300); // "Welcome to destination"
+    setTimeout(() => createTone(1046.5, 0.4), 500); // Success chime
+    setTimeout(() => createTone(1318.5, 0.6), 700); // Victory fanfare
   };
 
   const startBackgroundMusic = () => {
     if (!audioContextRef.current || backgroundMusicRef.current) return;
 
-    // Create a simple looping ambient background
-    const playAmbientLoop = () => {
+    // Create flight-themed ambient background music
+    const playFlightAmbientLoop = () => {
       if (!audioContextRef.current) return;
       
-      const oscillator = audioContextRef.current.createOscillator();
+      const oscillator1 = audioContextRef.current.createOscillator();
+      const oscillator2 = audioContextRef.current.createOscillator();
       const filter = audioContextRef.current.createBiquadFilter();
       const gainNode = audioContextRef.current.createGain();
       
-      oscillator.connect(filter);
+      // Create dual-oscillator for richer sound
+      oscillator1.connect(filter);
+      oscillator2.connect(filter);
       filter.connect(gainNode);
       gainNode.connect(audioContextRef.current.destination);
       
-      oscillator.frequency.setValueAtTime(110, audioContextRef.current.currentTime);
-      oscillator.type = 'sawtooth';
+      // Flight-themed frequencies - like distant jet engines
+      oscillator1.frequency.setValueAtTime(85, audioContextRef.current.currentTime); // Low rumble
+      oscillator2.frequency.setValueAtTime(170, audioContextRef.current.currentTime); // Harmonic
       
+      oscillator1.type = 'sawtooth';
+      oscillator2.type = 'triangle';
+      
+      // Filter for that distant aircraft sound
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(400, audioContextRef.current.currentTime);
+      filter.frequency.setValueAtTime(300, audioContextRef.current.currentTime);
       
-      gainNode.gain.setValueAtTime(0.05, audioContextRef.current.currentTime);
+      // Very quiet ambient level
+      gainNode.gain.setValueAtTime(0.03, audioContextRef.current.currentTime);
       
-      oscillator.start();
-      backgroundMusicRef.current = oscillator;
+      // Add subtle frequency modulation like aircraft engines
+      oscillator1.frequency.setValueAtTime(85, audioContextRef.current.currentTime);
+      oscillator1.frequency.linearRampToValueAtTime(88, audioContextRef.current.currentTime + 4);
+      oscillator1.frequency.linearRampToValueAtTime(85, audioContextRef.current.currentTime + 8);
       
-      // Loop every 8 seconds
+      oscillator1.start();
+      oscillator2.start();
+      backgroundMusicRef.current = oscillator1; // Store reference
+      
+      // Loop every 12 seconds for longer flight segments
       setTimeout(() => {
         if (backgroundMusicRef.current) {
-          backgroundMusicRef.current.stop();
+          oscillator1.stop();
+          oscillator2.stop();
           backgroundMusicRef.current = null;
-          playAmbientLoop();
+          playFlightAmbientLoop();
         }
-      }, 8000);
+      }, 12000);
     };
 
-    playAmbientLoop();
+    playFlightAmbientLoop();
   };
 
   const stopBackgroundMusic = () => {
