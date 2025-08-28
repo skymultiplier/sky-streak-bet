@@ -4,9 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plane, Shield, Scale, HelpCircle, MessageSquare, FileText } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Plane, Shield, Scale, HelpCircle, MessageSquare, FileText, RefreshCw, Copy, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+
+import { ProvablyFairSeeds } from "./ProvablyFairSeeds";
 
 interface InfoModalProps {
   isOpen: boolean;
@@ -45,18 +48,18 @@ export const InfoModal = ({ isOpen, onClose, type }: InfoModalProps) => {
                 <p><strong>1. Place Your Bet:</strong> Choose your bet amount (minimum $10) and click "Take Off"</p>
                 <p><strong>2. Watch the Flight:</strong> Your plane will fly across the sky, hitting multiplier boxes along the way</p>
                 <p><strong>3. Multiplier Magic:</strong> Each box contains a multiplier that affects your winnings:
-                  <br />• 🟢 Green boxes (1.3x-2.8x) = Small to decent profits
-                  <br />• 🟡 Yellow boxes (3x-5x) = Big wins (rare!)
-                  <br />• 🔴 Red boxes (0.5x-1.2x) = Losses or minimal gains
+                  <br />• 🟢 Green boxes = Small to decent profits
+                  <br />• 🟡 Yellow boxes = Big wins 
+                  <br />• 🔴 Red boxes = Losses or minimal gains
                 </p>
                 <p><strong>4. Cash Out:</strong> Click "Cash Out" while flying to secure your current winnings, or let it fly to the end for maximum multiplier</p>
                 <p><strong>5. Collect:</strong> After landing or cashing out, collect your winnings and play again!</p>
                 <div className="bg-slate-700/50 p-3 rounded-lg mt-4">
                   <p className="text-sm text-yellow-300"><strong>💡 Pro Tips:</strong></p>
                   <ul className="text-sm text-gray-400 mt-1 space-y-1">
-                    <li>• Loss streaks improve your odds slightly</li>
+                    <li>• Loss streaks may improve your experience</li>
                     <li>• Demo mode is perfect for learning</li>
-                    <li>• Higher bets don't change multiplier odds</li>
+                    <li>• Practice with different bet amounts</li>
                   </ul>
                 </div>
               </div>
@@ -124,19 +127,12 @@ export const InfoModal = ({ isOpen, onClose, type }: InfoModalProps) => {
                   </ul>
                 </div>
 
-                <div className="bg-slate-700/50 p-3 rounded-lg">
-                  <h4 className="font-semibold text-white mb-2">Current Game Seeds:</h4>
-                  <div className="text-xs font-mono space-y-1">
-                    <p><span className="text-gray-400">Server Hash:</span> <span className="text-cyan-300">a7b2c3d4...</span></p>
-                    <p><span className="text-gray-400">Client Seed:</span> <span className="text-cyan-300">user_12345</span></p>
-                    <p><span className="text-gray-400">Nonce:</span> <span className="text-cyan-300">158473</span></p>
-                  </div>
-                </div>
+                <ProvablyFairSeeds />
 
                 <div>
                   <h4 className="font-semibold text-white">Verification:</h4>
                   <ul className="text-sm space-y-1 mt-1">
-                    <li>• Change your client seed anytime in account settings</li>
+                    <li>• Change your client seed anytime</li>
                     <li>• Server seed revealed after each session</li>
                     <li>• Verify past games using our verification tool</li>
                     <li>• All game history available for audit</li>
@@ -323,29 +319,29 @@ export const InfoModal = ({ isOpen, onClose, type }: InfoModalProps) => {
               <h3 className="text-lg font-semibold text-cyan-400">🔒 Privacy Policy</h3>
               <div className="space-y-4 text-gray-300 text-sm">
                 <section>
-                  <h4 className="font-semibold text-white">Information We Collect</h4>
-                  <p>We collect email addresses, usernames, transaction history, and gameplay data. We use cookies for authentication and user preferences.</p>
+                  <h4 className="font-semibold text-white">Data Security</h4>
+                  <p>All user information is encrypted and secured on the blockchain, accessible only to you through high-security encryption protocols. Your data remains private and under your complete control.</p>
                 </section>
                 
                 <section>
-                  <h4 className="font-semibold text-white">How We Use Your Data</h4>
+                  <h4 className="font-semibold text-white">Blockchain Protection</h4>
                   <ul className="space-y-1 mt-1">
-                    <li>• Account management and authentication</li>
-                    <li>• Processing deposits and withdrawals</li>
-                    <li>• Game history and statistics</li>
-                    <li>• Customer support</li>
-                    <li>• Security and fraud prevention</li>
+                    <li>• All transactions secured via blockchain technology</li>
+                    <li>• Private keys remain with the user</li>
+                    <li>• Decentralized data storage</li>
+                    <li>• Zero-knowledge privacy protocols</li>
+                    <li>• End-to-end encryption for all communications</li>
                   </ul>
                 </section>
                 
                 <section>
-                  <h4 className="font-semibold text-white">Data Security</h4>
-                  <p>All data is encrypted using industry-standard SSL/TLS. Passwords are hashed and salted. We never store credit card information - all payments are processed by secure third-party providers.</p>
+                  <h4 className="font-semibold text-white">User Control</h4>
+                  <p>You maintain complete ownership and control of your data. We cannot access your encrypted information without your explicit permission and private keys.</p>
                 </section>
                 
                 <section>
-                  <h4 className="font-semibold text-white">Data Sharing</h4>
-                  <p>We don't sell your personal data. Information may be shared with payment processors, regulatory authorities (when required by law), and our security partners for fraud prevention.</p>
+                  <h4 className="font-semibold text-white">Data Independence</h4>
+                  <p>Your gaming history, account balance, and personal information are stored on immutable blockchain ledgers, ensuring transparency and preventing unauthorized access or modification.</p>
                 </section>
                 
                 <section>
@@ -372,57 +368,12 @@ export const InfoModal = ({ isOpen, onClose, type }: InfoModalProps) => {
           title: 'Responsible Gaming',
           icon: <Shield className="h-6 w-6 text-cyan-400" />,
           content: (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
+            <div className="space-y-4">
               <h3 className="text-lg font-semibold text-cyan-400">🛡️ Responsible Gaming</h3>
-              <div className="space-y-4 text-gray-300 text-sm">
-                <div className="bg-red-900/20 border border-red-500/30 p-3 rounded-lg">
-                  <p className="font-semibold text-red-400">⚠️ Gaming involves risk. Only bet what you can afford to lose.</p>
+              <div className="space-y-4 text-gray-300">
+                <div className="text-center">
+                  <p className="text-xl font-bold text-yellow-400">Gambling involves risk.</p>
                 </div>
-                
-                <section>
-                  <h4 className="font-semibold text-white">Set Your Limits</h4>
-                  <p>Always set daily, weekly, and monthly limits for:</p>
-                  <ul className="space-y-1 mt-1">
-                    <li>• Deposits</li>
-                    <li>• Bet amounts</li>
-                    <li>• Time spent playing</li>
-                    <li>• Losses</li>
-                  </ul>
-                </section>
-                
-                <section>
-                  <h4 className="font-semibold text-white">Warning Signs</h4>
-                  <p>Stop playing if you experience:</p>
-                  <ul className="space-y-1 mt-1">
-                    <li>• Betting more than you planned</li>
-                    <li>• Chasing losses with bigger bets</li>
-                    <li>• Lying about your gambling</li>
-                    <li>• Neglecting responsibilities</li>
-                    <li>• Borrowing money to gamble</li>
-                  </ul>
-                </section>
-                
-                <section>
-                  <h4 className="font-semibold text-white">Self-Exclusion Tools</h4>
-                  <p>We offer various tools to help you stay in control:</p>
-                  <ul className="space-y-1 mt-1">
-                    <li>• Deposit limits</li>
-                    <li>• Session time limits</li>
-                    <li>• Cool-off periods (24h-30 days)</li>
-                    <li>• Self-exclusion (6 months - permanent)</li>
-                  </ul>
-                </section>
-                
-                <section>
-                  <h4 className="font-semibold text-white">Get Help</h4>
-                  <p>If you need support:</p>
-                  <ul className="space-y-1 mt-1">
-                    <li>• Gamblers Anonymous: gamblers-anonymous.org</li>
-                    <li>• National Problem Gambling Helpline: 1-800-522-4700</li>
-                    <li>• GamCare: gamcare.org.uk</li>
-                    <li>• BeGambleAware: begambleaware.org</li>
-                  </ul>
-                </section>
               </div>
             </div>
           )
@@ -434,56 +385,32 @@ export const InfoModal = ({ isOpen, onClose, type }: InfoModalProps) => {
           icon: <FileText className="h-6 w-6 text-cyan-400" />,
           content: (
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              <h3 className="text-lg font-semibold text-cyan-400">🆔 Know Your Customer (KYC)</h3>
+              <h3 className="text-lg font-semibold text-cyan-400">📋 Know Your Customer (KYC) Policy</h3>
               <div className="space-y-4 text-gray-300 text-sm">
                 <section>
-                  <h4 className="font-semibold text-white">When KYC is Required</h4>
+                  <h4 className="font-semibold text-white">KYC Requirements</h4>
+                  <p>Sky Multiplier maintains a simplified KYC process to ensure user privacy while meeting regulatory requirements.</p>
+                </section>
+                
+                <section>
+                  <h4 className="font-semibold text-white">No KYC Required</h4>
+                  <div className="bg-green-700/20 border border-green-500/30 rounded-lg p-3">
+                    <p className="text-green-300 font-semibold">✅ KYC verification is NOT required for withdrawals below $10,000.</p>
+                  </div>
+                </section>
+                
+                <section>
+                  <h4 className="font-semibold text-white">When KYC May Be Required</h4>
                   <ul className="space-y-1 mt-1">
-                    <li>• Withdrawals over $2,000 in 30 days</li>
-                    <li>• Suspicious account activity</li>
-                    <li>• Random compliance checks</li>
-                    <li>• Regulatory requests</li>
+                    <li>• Withdrawals exceeding $10,000</li>
+                    <li>• Regulatory requirements in specific jurisdictions</li>
+                    <li>• Unusual account activity patterns</li>
                   </ul>
                 </section>
                 
                 <section>
-                  <h4 className="font-semibold text-white">Required Documents</h4>
-                  <p><strong>Identity Verification:</strong></p>
-                  <ul className="space-y-1 mt-1">
-                    <li>• Government-issued photo ID (passport, driver's license)</li>
-                    <li>• Must be valid and clearly visible</li>
-                    <li>• All corners must be visible</li>
-                  </ul>
-                  
-                  <p className="mt-3"><strong>Address Verification:</strong></p>
-                  <ul className="space-y-1 mt-1">
-                    <li>• Utility bill (electricity, gas, water)</li>
-                    <li>• Bank statement</li>
-                    <li>• Government correspondence</li>
-                    <li>• Must be dated within 3 months</li>
-                  </ul>
-                </section>
-                
-                <section>
-                  <h4 className="font-semibold text-white">Verification Process</h4>
-                  <ol className="space-y-1 mt-1">
-                    <li>1. Submit documents through your account</li>
-                    <li>2. Our team reviews within 24-48 hours</li>
-                    <li>3. You'll receive email confirmation</li>
-                    <li>4. If approved, full account access restored</li>
-                    <li>5. If rejected, we'll explain what needs fixing</li>
-                  </ol>
-                </section>
-                
-                <section>
-                  <h4 className="font-semibold text-white">Data Security</h4>
-                  <p>All KYC documents are:</p>
-                  <ul className="space-y-1 mt-1">
-                    <li>• Encrypted during transmission and storage</li>
-                    <li>• Accessed only by authorized compliance staff</li>
-                    <li>• Retained as required by law, then securely deleted</li>
-                    <li>• Never shared except when legally required</li>
-                  </ul>
+                  <h4 className="font-semibold text-white">Privacy First</h4>
+                  <p>We prioritize user privacy and only request verification when absolutely necessary. Most users can enjoy full platform access without KYC requirements.</p>
                 </section>
               </div>
             </div>

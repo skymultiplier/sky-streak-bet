@@ -168,14 +168,14 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
             <div className="flex items-center space-x-3">
               <Bitcoin className="h-6 w-6 text-orange-400" />
               <div className="text-left">
-                <div className="font-semibold">Cryptocurrency</div>
+                <div className="font-semibold">Crypto</div>
                 <div className="text-xs text-gray-400">USDT, Bitcoin - Instant & Secure</div>
               </div>
             </div>
             <ChevronDown className="h-4 w-4" />
           </Button>
           
-          {type === 'deposit' && (
+          {type === 'deposit' && !selectedMethod && (
             <Button
               onClick={() => handleMethodSelect('card')}
               variant="outline"
@@ -192,23 +192,25 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
             </Button>
           )}
           
-          <Button
-            onClick={() => handleMethodSelect('bank')}
-            variant="outline"
-            className="h-16 justify-between border-slate-600 hover:border-cyan-500/50"
-            disabled={type === 'deposit'}
-          >
-            <div className="flex items-center space-x-3">
-              <Building2 className="h-6 w-6 text-green-400" />
-              <div className="text-left">
-                <div className="font-semibold">Bank Transfer</div>
-                <div className="text-xs text-gray-400">
-                  {type === 'deposit' ? 'Not available in your region' : '1-3 business days'}
+          {!selectedMethod && (
+            <Button
+              onClick={() => handleMethodSelect('bank')}
+              variant="outline"
+              className="h-16 justify-between border-slate-600 hover:border-cyan-500/50"
+              disabled={type === 'deposit'}
+            >
+              <div className="flex items-center space-x-3">
+                <Building2 className="h-6 w-6 text-green-400" />
+                <div className="text-left">
+                  <div className="font-semibold">Bank Transfer</div>
+                  <div className="text-xs text-gray-400">
+                    {type === 'deposit' ? 'Not available in your region' : '1-3 business days'}
+                  </div>
                 </div>
               </div>
-            </div>
-            <ChevronDown className="h-4 w-4" />
-          </Button>
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
     </div>

@@ -373,6 +373,14 @@ export const GameInterface = () => {
     ? parseFloat(localStorage.getItem('demoBalance') || '1000')
     : balance;
 
+  const replenishDemoBalance = () => {
+    localStorage.setItem('demoBalance', '1000');
+    toast({
+      title: "Demo Balance Replenished",
+      description: "Your demo account has been topped up with $1000 USDT!",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900">
       {/* Demo/Real Mode Toggle with Balance and Username - Top Right */}
@@ -398,6 +406,16 @@ export const GameInterface = () => {
             }`}>
               {isDemoMode ? 'Demo' : 'Real'}
             </div>
+            {isDemoMode && currentBalance < 50 && (
+              <Button
+                onClick={replenishDemoBalance}
+                size="sm"
+                variant="outline"
+                className="mt-1 text-xs px-2 py-1 h-6"
+              >
+                Replenish
+              </Button>
+            )}
           </div>
           
           {/* Mode Toggle */}
