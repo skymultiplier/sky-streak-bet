@@ -2,9 +2,15 @@
 import { Plane, Twitter, Github, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { InfoModal } from "./InfoModal";
+import { SupportTicketForm } from "./SupportTicketForm";
 
 export const Footer = () => {
   const [modalType, setModalType] = useState<string | null>(null);
+  const [showSupportForm, setShowSupportForm] = useState(false);
+
+  const handleContactClick = () => {
+    setShowSupportForm(true);
+  };
   return (
     <footer className="bg-slate-900 border-t border-cyan-500/20 py-12">
       <div className="container mx-auto px-4">
@@ -39,9 +45,9 @@ export const Footer = () => {
             <h4 className="text-white font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-gray-400 text-sm">
               <li><button onClick={() => setModalType('help-center')} className="hover:text-cyan-400 transition-colors text-left">Help Center</button></li>
-              <li><button onClick={() => setModalType('contact-us')} className="hover:text-cyan-400 transition-colors text-left">Contact Us</button></li>
-              <li><button onClick={() => setModalType('contact-us')} className="hover:text-cyan-400 transition-colors text-left">Bug Reports</button></li>
-              <li><button onClick={() => setModalType('contact-us')} className="hover:text-cyan-400 transition-colors text-left">Feedback</button></li>
+              <li><button onClick={handleContactClick} className="hover:text-cyan-400 transition-colors text-left">Contact Us</button></li>
+              <li><button onClick={handleContactClick} className="hover:text-cyan-400 transition-colors text-left">Bug Reports</button></li>
+              <li><button onClick={handleContactClick} className="hover:text-cyan-400 transition-colors text-left">Feedback</button></li>
             </ul>
           </div>
 
@@ -80,6 +86,11 @@ export const Footer = () => {
         isOpen={!!modalType}
         onClose={() => setModalType(null)}
         type={modalType as any}
+      />
+      
+      <SupportTicketForm
+        isOpen={showSupportForm}
+        onClose={() => setShowSupportForm(false)}
       />
     </footer>
   );

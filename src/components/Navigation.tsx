@@ -47,6 +47,14 @@ export const Navigation = () => {
                   History
                 </Button>
               </Link>
+              {user && (
+                <Link to="/game">
+                  <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
+                    <Plane className="h-4 w-4 mr-2" />
+                    Game Lounge
+                  </Button>
+                </Link>
+              )}
               {user ? (
                 <Link to="/my-account">
                   <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
@@ -94,6 +102,14 @@ export const Navigation = () => {
                   History
                 </Button>
               </Link>
+              {user && (
+                <Link to="/game">
+                  <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">
+                    <Plane className="h-4 w-4 mr-2" />
+                    Game Lounge
+                  </Button>
+                </Link>
+              )}
               {user ? (
                 <Link to="/my-account">
                   <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">

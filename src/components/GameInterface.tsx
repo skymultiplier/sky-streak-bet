@@ -48,45 +48,50 @@ export const GameInterface = () => {
   const generateMultiplierBoxes = () => {
     const boxes: MultiplierBox[] = [];
     
-    // Calculate streak bonus - more losses = better odds
-    const streakBonus = Math.min(lossStreak * 0.05, 0.15); // Max 15% bonus for demo
-    const demoBonus = isDemoMode ? 0.1 : 0; // Extra 10% for demo mode to be more enticing
+    // Track rounds for demo jackpot timing
+    const roundsSinceJackpot = localStorage.getItem('roundsSinceJackpot') || '0';
+    const currentRounds = parseInt(roundsSinceJackpot) + 1;
     
     for (let i = 0; i < 6; i++) {
       const rand = Math.random();
       let multiplier;
       
       if (isDemoMode) {
-        // Demo mode - more generous odds for better experience
-        if (rand < 0.65 - streakBonus - demoBonus) {
-          // 65% chance for small wins/break-even (0.8x - 1.4x) - mostly winning in demo
-          multiplier = +(Math.random() * 0.6 + 0.8).toFixed(1);
-        } else if (rand < 0.85) {
-          // 20% chance for good multipliers (1.5x - 2.5x)
-          multiplier = +(Math.random() * 1.0 + 1.5).toFixed(1);
-        } else if (rand < 0.97) {
-          // 12% chance for great multipliers (2.6x - 4x)
-          multiplier = +(Math.random() * 1.4 + 2.6).toFixed(1);
+        // Demo mode - fairer but still 2x better than real mode
+        const jackpotChance = currentRounds >= 10 ? 0.02 : 0; // 2% chance after 10 rounds
+        const rareChance = 0.15; // 15% chance for rare
+        const commonHighChance = 0.60; // 60% for upper common range
+        
+        if (rand < jackpotChance) {
+          // Jackpot: 10x - 50x multipliers
+          multiplier = +(Math.random() * 40 + 10).toFixed(1);
+          localStorage.setItem('roundsSinceJackpot', '0'); // Reset counter
+        } else if (rand < jackpotChance + rareChance) {
+          // Rare: 4.4x - 10x multipliers
+          multiplier = +(Math.random() * 5.6 + 4.4).toFixed(1);
+        } else if (rand < jackpotChance + rareChance + commonHighChance) {
+          // Common high: 1.5x - 4.3x (winning range)
+          multiplier = +(Math.random() * 2.8 + 1.5).toFixed(1);
         } else {
-          // 3% chance for amazing multipliers (4x - 6x) - more common in demo
-          const bigMultiplier = 4 + (Math.random() * 2) + (lossStreak * 0.3);
-          multiplier = +Math.min(bigMultiplier, 6).toFixed(1);
+          // Common low: 0.5x - 1.4x (losing but fair)
+          multiplier = +(Math.random() * 0.9 + 0.5).toFixed(1);
         }
+        
+        localStorage.setItem('roundsSinceJackpot', currentRounds.toString());
       } else {
-        // Real mode - conservative odds
-        if (rand < 0.85 - streakBonus) {
-          // 85% chance for losing/very low multipliers (0.5x - 1.2x) - mostly losing
+        // Real mode - realistic gambling odds
+        if (rand < 0.75) {
+          // 75% chance for losing/low multipliers (0.5x - 1.2x)
           multiplier = +(Math.random() * 0.7 + 0.5).toFixed(1);
-        } else if (rand < 0.95) {
-          // 10% chance for small profit multipliers (1.3x - 1.8x)
-          multiplier = +(Math.random() * 0.5 + 1.3).toFixed(1);
-        } else if (rand < 0.99) {
-          // 4% chance for decent multipliers (1.9x - 2.8x)
-          multiplier = +(Math.random() * 0.9 + 1.9).toFixed(1);
+        } else if (rand < 0.90) {
+          // 15% chance for small profit multipliers (1.3x - 2.0x)
+          multiplier = +(Math.random() * 0.7 + 1.3).toFixed(1);
+        } else if (rand < 0.98) {
+          // 8% chance for decent multipliers (2.1x - 4.0x)
+          multiplier = +(Math.random() * 1.9 + 2.1).toFixed(1);
         } else {
-          // 1% chance for big multipliers (3x - 5x) - extremely rare
-          const bigMultiplier = 3 + (Math.random() * 2) + (lossStreak * 0.2);
-          multiplier = +Math.min(bigMultiplier, 5).toFixed(1);
+          // 2% chance for big multipliers (4.1x - 8.0x)
+          multiplier = +(Math.random() * 3.9 + 4.1).toFixed(1);
         }
       }
 

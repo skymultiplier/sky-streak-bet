@@ -17,6 +17,7 @@ interface User {
   username: string;
   balance: number;
   created_at: string;
+  status?: string;
 }
 
 interface Transaction {
@@ -31,12 +32,15 @@ interface Transaction {
 
 interface SupportTicket {
   id: string;
+  user_id?: string;
   user_email: string;
   category: string;
   subject: string;
   description: string;
-  status: 'open' | 'in-progress' | 'resolved';
+  status: string;
+  admin_response?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export const AdminDashboard = () => {
@@ -53,27 +57,7 @@ export const AdminDashboard = () => {
   useEffect(() => {
     fetchUsers();
     fetchTransactions();
-    // Mock support tickets for demo
-    setSupportTickets([
-      {
-        id: '1',
-        user_email: 'user1@example.com',
-        category: 'deposit',
-        subject: 'Deposit not credited',
-        description: 'My USDT deposit of $500 has not been credited to my account after 2 hours.',
-        status: 'open',
-        created_at: new Date().toISOString()
-      },
-      {
-        id: '2',
-        user_email: 'user2@example.com',
-        category: 'withdrawal',
-        subject: 'Withdrawal stuck',
-        description: 'My withdrawal request has been pending for 24 hours.',
-        status: 'in-progress',
-        created_at: new Date(Date.now() - 86400000).toISOString()
-      }
-    ]);
+    fetchSupportTickets();
   }, []);
 
   const fetchUsers = async () => {
@@ -87,6 +71,30 @@ export const AdminDashboard = () => {
       setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch users. Please check your admin permissions.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchSupportTickets = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('support_tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setSupportTickets(data || []);
+    } catch (error) {
+      console.error('Error fetching support tickets:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to fetch support tickets. Please check your admin permissions.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -118,22 +126,14 @@ export const AdminDashboard = () => {
     try {
       const amount = parseFloat(adjustmentAmount);
       
-      // Use deposit function for positive adjustments
-      if (amount > 0) {
-        const { error } = await supabase.rpc('deposit', {
-          _amount: amount
-        });
+      // Use the admin function to adjust any user's balance
+      const { data, error } = await supabase.rpc('admin_adjust_balance', {
+        _user_id: selectedUserId,
+        _amount: amount,
+        _reason: adjustmentReason
+      });
 
-        if (error) throw error;
-      } else {
-        // For negative adjustments, we'd need a special admin function
-        toast({
-          title: "Feature Not Available",
-          description: "Negative balance adjustments require special admin privileges.",
-          variant: "destructive",
-        });
-        return;
-      }
+      if (error) throw error;
 
       toast({
         title: "Balance Adjusted",
@@ -152,7 +152,45 @@ export const AdminDashboard = () => {
       console.error('Error adjusting balance:', error);
       toast({
         title: "Error",
-        description: "Failed to adjust balance. Please try again.",
+        description: error.message || "Failed to adjust balance. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUserAction = async (userId: string, action: 'suspend' | 'delete') => {
+    try {
+      if (action === 'suspend') {
+        const { error } = await supabase.rpc('admin_suspend_user', {
+          _user_id: userId
+        });
+        if (error) throw error;
+        
+        toast({
+          title: "User Suspended",
+          description: "User has been suspended successfully.",
+        });
+      } else if (action === 'delete') {
+        // In practice, we usually soft delete by updating status
+        const { error } = await supabase
+          .from('users')
+          .update({ status: 'deleted', updated_at: new Date().toISOString() })
+          .eq('id', userId);
+          
+        if (error) throw error;
+        
+        toast({
+          title: "User Deleted",
+          description: "User has been deleted successfully.",
+        });
+      }
+      
+      fetchUsers(); // Refresh user list
+    } catch (error) {
+      console.error('Error performing user action:', error);
+      toast({
+        title: "Error",
+        description: error.message || `Failed to ${action} user.`,
         variant: "destructive",
       });
     }
@@ -176,7 +214,7 @@ export const AdminDashboard = () => {
     setOtpCode('');
   };
 
-  const handleTicketResponse = () => {
+  const handleTicketResponse = async () => {
     if (!selectedTicketId || !ticketResponse) {
       toast({
         title: "Missing Information",
@@ -186,20 +224,34 @@ export const AdminDashboard = () => {
       return;
     }
 
-    // Update ticket status
-    setSupportTickets(prev => prev.map(ticket => 
-      ticket.id === selectedTicketId 
-        ? { ...ticket, status: 'resolved' as const }
-        : ticket
-    ));
+    try {
+      const { error } = await supabase
+        .from('support_tickets')
+        .update({ 
+          status: 'resolved',
+          admin_response: ticketResponse,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedTicketId);
 
-    toast({
-      title: "Response Sent",
-      description: "Support ticket response has been sent to the user.",
-    });
+      if (error) throw error;
 
-    setSelectedTicketId('');
-    setTicketResponse('');
+      toast({
+        title: "Response Sent",
+        description: "Support ticket response has been sent to the user.",
+      });
+
+      setSelectedTicketId('');
+      setTicketResponse('');
+      fetchSupportTickets(); // Refresh tickets
+    } catch (error) {
+      console.error('Error responding to ticket:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send response. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -246,7 +298,31 @@ export const AdminDashboard = () => {
                           {new Date(user.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <Badge className="bg-green-500/20 text-green-400">Active</Badge>
+                          <div className="flex items-center space-x-2">
+                            <Badge className={`${
+                              user.status === 'suspended' ? 'bg-red-500/20 text-red-400' :
+                              user.status === 'deleted' ? 'bg-gray-500/20 text-gray-400' :
+                              'bg-green-500/20 text-green-400'
+                            }`}>
+                              {user.status || 'Active'}
+                            </Badge>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleUserAction(user.id, 'suspend')}
+                              className="text-xs px-2 py-1 h-6"
+                            >
+                              Suspend
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleUserAction(user.id, 'delete')}
+                              className="text-xs px-2 py-1 h-6 text-red-400 border-red-400"
+                            >
+                              Delete
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
