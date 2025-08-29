@@ -52,6 +52,45 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          admin_response: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          status: string
+          subject: string
+          updated_at: string
+          user_email: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_response?: string | null
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_email: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_response?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_email?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -87,6 +126,24 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           balance: number
@@ -116,6 +173,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_adjust_balance: {
+        Args: { _amount: number; _reason: string; _user_id: string }
+        Returns: {
+          new_balance: number
+        }[]
+      }
+      admin_suspend_user: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       deposit: {
         Args: { _amount: number }
         Returns: {
@@ -125,6 +192,13 @@ export type Database = {
       get_user_balance: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
       place_bet: {
         Args: { _bet_amount: number; _game_id: string }
@@ -149,6 +223,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "user"
       bet_status: "pending" | "lost" | "won" | "cancelled"
       transaction_type: "deposit" | "bet" | "win" | "withdrawal"
     }
@@ -278,6 +353,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       bet_status: ["pending", "lost", "won", "cancelled"],
       transaction_type: ["deposit", "bet", "win", "withdrawal"],
     },
