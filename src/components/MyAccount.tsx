@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 
 interface Transaction {
   id: string;
-  type: "deposit" | "withdrawal" | "bet" | "win";
+  type: string;
   amount: number;
   created_at: string;
   balance_after: number;

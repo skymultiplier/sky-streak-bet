@@ -52,10 +52,9 @@ export const SupportTicketForm = ({ isOpen, onClose }: SupportTicketFormProps) =
         .from('support_tickets')
         .insert({
           user_id: user?.id || null,
-          user_email: userEmail,
-          category,
-          subject,
-          description,
+          email: userEmail,
+          subject: `[${category}] ${subject}`,
+          message: description,
           status: 'open'
         });
 

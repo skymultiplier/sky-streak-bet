@@ -14,13 +14,187 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bets: {
+        Row: {
+          bet_amount: number
+          client_seed: string | null
+          created_at: string
+          id: string
+          multiplier: number | null
+          nonce: number | null
+          payout: number | null
+          resolved_at: string | null
+          server_seed: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          bet_amount: number
+          client_seed?: string | null
+          created_at?: string
+          id?: string
+          multiplier?: number | null
+          nonce?: number | null
+          payout?: number | null
+          resolved_at?: string | null
+          server_seed?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          bet_amount?: number
+          client_seed?: string | null
+          created_at?: string
+          id?: string
+          multiplier?: number | null
+          nonce?: number | null
+          payout?: number | null
+          resolved_at?: string | null
+          server_seed?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          admin_response: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_response?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_response?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string
+          description: string | null
+          id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id: string
+          status?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_adjust_balance: {
+        Args: { p_amount: number; p_reason: string; p_user_id: string }
+        Returns: Json
+      }
+      admin_suspend_user: {
+        Args: { p_suspend: boolean; p_user_id: string }
+        Returns: Json
+      }
+      has_role: {
+        Args: { check_role: string; check_user_id: string }
+        Returns: boolean
+      }
+      place_bet: {
+        Args: { p_bet_amount: number; p_client_seed?: string }
+        Returns: Json
+      }
+      resolve_bet: {
+        Args: { p_bet_id: string; p_multiplier: number; p_won: boolean }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
