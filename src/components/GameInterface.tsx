@@ -180,8 +180,7 @@ export const GameInterface = () => {
     try {
       // Place bet using Supabase
       const { data, error } = await supabase.rpc('place_bet', {
-        _game_id: `game_${Date.now()}`,
-        _bet_amount: betAmountNum
+        p_bet_amount: betAmountNum
       });
 
       if (error) {
@@ -193,7 +192,17 @@ export const GameInterface = () => {
         return;
       }
 
-      setCurrentBetId(data[0].bet_id);
+      const result = data as { success: boolean; bet_id?: string; new_balance?: number; error?: string };
+      if (!result.success) {
+        toast({
+          title: "Bet Failed",
+          description: result.error || "Failed to place bet",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setCurrentBetId(result.bet_id || null);
       setGameStatus("flying");
       setPlanePosition(0);
       setCurrentMultiplier(1.0);
@@ -263,8 +272,9 @@ export const GameInterface = () => {
     try {
       // Resolve bet using Supabase
       const { data, error } = await supabase.rpc('resolve_bet', {
-        _bet_id: currentBetId,
-        _multiplier: finalMultiplier
+        p_bet_id: currentBetId,
+        p_multiplier: finalMultiplier,
+        p_won: isWin
       });
 
       if (error) {
@@ -277,6 +287,8 @@ export const GameInterface = () => {
         return;
       }
 
+      const result = data as { success: boolean; payout?: number; new_balance?: number; error?: string };
+
       // Update loss streak based on win/loss
       if (isWin) {
         setLossStreak(0); // Reset streak on win
@@ -287,7 +299,7 @@ export const GameInterface = () => {
         
         toast({
           title: "Congratulations!",
-          description: `You won $${data[0].payout.toFixed(2)}!`,
+          description: `You won $${(result.payout || 0).toFixed(2)}!`,
         });
       } else {
         setLossStreak(prev => prev + 1); // Increment streak on loss

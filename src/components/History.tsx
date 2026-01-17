@@ -8,10 +8,10 @@ import { supabase } from "@/integrations/supabase/client";
 interface BetHistoryEntry {
   id: string;
   bet_amount: number;
-  payout: number;
+  payout: number | null;
   created_at: string;
-  status: "won" | "lost" | "pending" | "cancelled";
-  game_id: string | null;
+  status: string;
+  multiplier: number | null;
 }
 
 export const History = () => {
@@ -42,28 +42,29 @@ export const History = () => {
         return;
       }
 
-      setBetHistory(data || []);
+      const bets = (data || []) as BetHistoryEntry[];
+      setBetHistory(bets);
       
       // Calculate stats
-      const totalWins = data?.reduce((sum, bet) => 
-        sum + (bet.status === 'won' ? bet.payout : 0), 0) || 0;
+      const totalWins = bets.reduce((sum, bet) => 
+        sum + (bet.status === 'won' ? (bet.payout || 0) : 0), 0);
       setTotalWinnings(totalWins);
       
       // Find best multiplier
-      const best = data?.reduce((max, bet) => {
-        if (bet.status === 'won' && bet.payout > 0) {
+      const best = bets.reduce((max, bet) => {
+        if (bet.status === 'won' && bet.payout && bet.payout > 0) {
           const currentMult = bet.payout / bet.bet_amount;
           const maxMult = parseFloat(max.replace('x', ''));
           return currentMult > maxMult ? currentMult.toFixed(1) + 'x' : max;
         }
         return max;
-      }, "0x") || "0x";
+      }, "0x");
       setBestMultiplier(best);
       
       // Count today's flights
       const today = new Date().toDateString();
-      const todayFlights = data?.filter(bet => 
-        new Date(bet.created_at).toDateString() === today).length || 0;
+      const todayFlights = bets.filter(bet => 
+        new Date(bet.created_at).toDateString() === today).length;
       setFlightsToday(todayFlights);
     } catch (error) {
       console.error('Error fetching bet history:', error);
@@ -150,12 +151,12 @@ export const History = () => {
                       {/* Multiplier */}
                       <div>
                         <span className={`inline-flex items-center border rounded-full px-3 py-1 text-sm font-semibold ${
-                          bet.status === 'won' && bet.payout > bet.bet_amount
+                          bet.status === 'won' && (bet.payout || 0) > bet.bet_amount
                             ? "bg-green-500/20 border-green-500/30 text-green-400"
                             : "bg-red-500/20 border-red-500/30 text-red-400"
                         }`}>
                           <Plane className="h-3 w-3 mr-1" />
-                          {bet.status === 'won' && bet.payout > 0 
+                          {bet.status === 'won' && bet.payout && bet.payout > 0 
                             ? (bet.payout / bet.bet_amount).toFixed(1) + 'x'
                             : '0.0x'
                           }
@@ -164,7 +165,7 @@ export const History = () => {
 
                       {/* Winnings */}
                       <div className={`font-bold ${bet.status === 'won' ? 'text-green-400' : 'text-red-400'}`}>
-                        {bet.status === 'won' ? `$${bet.payout.toFixed(2)}` : '$0.00'}
+                        {bet.status === 'won' ? `$${(bet.payout || 0).toFixed(2)}` : '$0.00'}
                       </div>
 
                       {/* Status */}

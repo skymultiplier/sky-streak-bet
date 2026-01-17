@@ -33,10 +33,9 @@ interface Transaction {
 interface SupportTicket {
   id: string;
   user_id?: string;
-  user_email: string;
-  category: string;
+  email: string;
   subject: string;
-  description: string;
+  message: string;
   status: string;
   admin_response?: string;
   created_at: string;
@@ -128,9 +127,9 @@ export const AdminDashboard = () => {
       
       // Use the admin function to adjust any user's balance
       const { data, error } = await supabase.rpc('admin_adjust_balance', {
-        _user_id: selectedUserId,
-        _amount: amount,
-        _reason: adjustmentReason
+        p_user_id: selectedUserId,
+        p_amount: amount,
+        p_reason: adjustmentReason
       });
 
       if (error) throw error;
@@ -162,7 +161,8 @@ export const AdminDashboard = () => {
     try {
       if (action === 'suspend') {
         const { error } = await supabase.rpc('admin_suspend_user', {
-          _user_id: userId
+          p_user_id: userId,
+          p_suspend: true
         });
         if (error) throw error;
         
@@ -403,9 +403,9 @@ export const AdminDashboard = () => {
                             {ticket.status}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-400 mb-1">{ticket.user_email}</p>
+                        <p className="text-sm text-gray-400 mb-1">{ticket.email}</p>
                         <p className="text-sm text-white font-medium mb-1">{ticket.subject}</p>
-                        <p className="text-xs text-gray-500 truncate">{ticket.description}</p>
+                        <p className="text-xs text-gray-500 truncate">{ticket.message}</p>
                       </div>
                     ))}
                   </div>
