@@ -10,222 +10,20 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.4"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
-      bets: {
-        Row: {
-          bet_amount: number
-          created_at: string
-          game_id: string | null
-          id: string
-          payout: number
-          status: Database["public"]["Enums"]["bet_status"]
-          user_id: string
-        }
-        Insert: {
-          bet_amount: number
-          created_at?: string
-          game_id?: string | null
-          id?: string
-          payout?: number
-          status?: Database["public"]["Enums"]["bet_status"]
-          user_id: string
-        }
-        Update: {
-          bet_amount?: number
-          created_at?: string
-          game_id?: string | null
-          id?: string
-          payout?: number
-          status?: Database["public"]["Enums"]["bet_status"]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bets_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      support_tickets: {
-        Row: {
-          admin_response: string | null
-          category: string
-          created_at: string
-          description: string
-          id: string
-          status: string
-          subject: string
-          updated_at: string
-          user_email: string
-          user_id: string | null
-        }
-        Insert: {
-          admin_response?: string | null
-          category: string
-          created_at?: string
-          description: string
-          id?: string
-          status?: string
-          subject: string
-          updated_at?: string
-          user_email: string
-          user_id?: string | null
-        }
-        Update: {
-          admin_response?: string | null
-          category?: string
-          created_at?: string
-          description?: string
-          id?: string
-          status?: string
-          subject?: string
-          updated_at?: string
-          user_email?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      transactions: {
-        Row: {
-          amount: number
-          balance_after: number
-          created_at: string
-          id: string
-          type: Database["public"]["Enums"]["transaction_type"]
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          balance_after: number
-          created_at?: string
-          id?: string
-          type: Database["public"]["Enums"]["transaction_type"]
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          balance_after?: number
-          created_at?: string
-          id?: string
-          type?: Database["public"]["Enums"]["transaction_type"]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "transactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_roles: {
-        Row: {
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
-      users: {
-        Row: {
-          balance: number
-          created_at: string
-          id: string
-          updated_at: string
-          username: string
-        }
-        Insert: {
-          balance?: number
-          created_at?: string
-          id: string
-          updated_at?: string
-          username: string
-        }
-        Update: {
-          balance?: number
-          created_at?: string
-          id?: string
-          updated_at?: string
-          username?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      admin_adjust_balance: {
-        Args: { _amount: number; _reason: string; _user_id: string }
-        Returns: {
-          new_balance: number
-        }[]
-      }
-      admin_suspend_user: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
-      deposit: {
-        Args: { _amount: number }
-        Returns: {
-          balance: number
-        }[]
-      }
-      get_user_balance: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      place_bet: {
-        Args: { _bet_amount: number; _game_id: string }
-        Returns: {
-          balance: number
-          bet_id: string
-        }[]
-      }
-      resolve_bet: {
-        Args: { _bet_id: string; _multiplier: number }
-        Returns: {
-          balance: number
-          payout: number
-          status: Database["public"]["Enums"]["bet_status"]
-        }[]
-      }
-      withdraw: {
-        Args: { _amount: number }
-        Returns: {
-          balance: number
-        }[]
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "admin" | "user"
-      bet_status: "pending" | "lost" | "won" | "cancelled"
-      transaction_type: "deposit" | "bet" | "win" | "withdrawal"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -352,10 +150,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "user"],
-      bet_status: ["pending", "lost", "won", "cancelled"],
-      transaction_type: ["deposit", "bet", "win", "withdrawal"],
-    },
+    Enums: {},
   },
 } as const
