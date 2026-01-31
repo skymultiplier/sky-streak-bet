@@ -175,17 +175,17 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
             <ChevronDown className="h-4 w-4" />
           </Button>
           
-          {type === 'deposit' && !selectedMethod && (
+          {!selectedMethod && (
             <Button
-              onClick={() => handleMethodSelect('card')}
               variant="outline"
-              className="h-16 justify-between border-slate-600 hover:border-cyan-500/50"
+              className="h-16 justify-between border-slate-600 opacity-60 cursor-not-allowed"
+              disabled
             >
               <div className="flex items-center space-x-3">
                 <CreditCard className="h-6 w-6 text-blue-400" />
                 <div className="text-left">
                   <div className="font-semibold">Credit/Debit Card</div>
-                  <div className="text-xs text-gray-400">Visa, Mastercard - Instant</div>
+                  <div className="text-xs text-red-400">Not available in your region</div>
                 </div>
               </div>
               <ChevronDown className="h-4 w-4" />
@@ -194,16 +194,16 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
           
           {!selectedMethod && (
             <Button
-              onClick={() => handleMethodSelect('bank')}
+              onClick={type === 'withdraw' ? () => handleMethodSelect('bank') : undefined}
               variant="outline"
-              className="h-16 justify-between border-slate-600 hover:border-cyan-500/50"
+              className={`h-16 justify-between border-slate-600 ${type === 'deposit' ? 'opacity-60 cursor-not-allowed' : 'hover:border-cyan-500/50'}`}
               disabled={type === 'deposit'}
             >
               <div className="flex items-center space-x-3">
                 <Building2 className="h-6 w-6 text-green-400" />
                 <div className="text-left">
                   <div className="font-semibold">Bank Transfer</div>
-                  <div className="text-xs text-gray-400">
+                  <div className={`text-xs ${type === 'deposit' ? 'text-red-400' : 'text-gray-400'}`}>
                     {type === 'deposit' ? 'Not available in your region' : '1-3 business days'}
                   </div>
                 </div>
