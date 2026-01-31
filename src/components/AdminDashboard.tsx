@@ -25,19 +25,19 @@ interface Transaction {
   user_id: string;
   type: string;
   amount: number;
-  balance_after: number;
+  description?: string | null;
+  reference?: string | null;
   created_at: string;
   status?: string;
 }
 
 interface SupportTicket {
   id: string;
-  user_id?: string;
-  email: string;
+  user_id: string;
   subject: string;
   message: string;
   status: string;
-  admin_response?: string;
+  admin_response?: string | null;
   created_at: string;
   updated_at?: string;
 }
@@ -127,7 +127,7 @@ export const AdminDashboard = () => {
       
       // Use the admin function to adjust any user's balance
       const { data, error } = await supabase.rpc('admin_adjust_balance', {
-        p_user_id: selectedUserId,
+        p_target_user_id: selectedUserId,
         p_amount: amount,
         p_reason: adjustmentReason
       });
@@ -161,7 +161,7 @@ export const AdminDashboard = () => {
     try {
       if (action === 'suspend') {
         const { error } = await supabase.rpc('admin_suspend_user', {
-          p_user_id: userId,
+          p_target_user_id: userId,
           p_suspend: true
         });
         if (error) throw error;
@@ -346,7 +346,7 @@ export const AdminDashboard = () => {
                     <TableRow>
                       <TableHead>Type</TableHead>
                       <TableHead>Amount</TableHead>
-                      <TableHead>Balance After</TableHead>
+                      <TableHead>Description</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
@@ -364,12 +364,12 @@ export const AdminDashboard = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-white">${transaction.amount.toFixed(2)}</TableCell>
-                        <TableCell className="text-gray-400">${transaction.balance_after.toFixed(2)}</TableCell>
+                        <TableCell className="text-gray-400">{transaction.description || '-'}</TableCell>
                         <TableCell className="text-gray-400">
                           {new Date(transaction.created_at).toLocaleString()}
                         </TableCell>
                         <TableCell>
-                          <Badge className="bg-green-500/20 text-green-400">Completed</Badge>
+                          <Badge className="bg-green-500/20 text-green-400">{transaction.status || 'Completed'}</Badge>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -403,7 +403,7 @@ export const AdminDashboard = () => {
                             {ticket.status}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-400 mb-1">{ticket.email}</p>
+                        <p className="text-sm text-gray-400 mb-1">User: {ticket.user_id}</p>
                         <p className="text-sm text-white font-medium mb-1">{ticket.subject}</p>
                         <p className="text-xs text-gray-500 truncate">{ticket.message}</p>
                       </div>

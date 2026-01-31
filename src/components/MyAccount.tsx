@@ -13,7 +13,8 @@ interface Transaction {
   type: string;
   amount: number;
   created_at: string;
-  balance_after: number;
+  description?: string | null;
+  status?: string;
 }
 
 export const MyAccount = () => {
@@ -263,11 +264,11 @@ export const MyAccount = () => {
                     </div>
                     <div className="text-right">
                       <div className={`font-bold ${getTransactionColor(transaction.type)}`}>
-                        {transaction.type === 'deposit' || transaction.type === 'win' ? '+' : '-'}
+                        {transaction.type === 'deposit' || transaction.type === 'win' ? '+' : ''}
                         ${transaction.amount.toFixed(2)}
                       </div>
                       <div className="text-xs text-gray-400">
-                        Balance: ${transaction.balance_after.toFixed(2)}
+                        {transaction.description || transaction.status || 'Completed'}
                       </div>
                     </div>
                   </div>
