@@ -180,7 +180,8 @@ export const GameInterface = () => {
     try {
       // Place bet using Supabase
       const { data, error } = await supabase.rpc('place_bet', {
-        p_bet_amount: betAmountNum
+        p_user_id: user!.id,
+        p_amount: betAmountNum
       });
 
       if (error) {
@@ -273,8 +274,8 @@ export const GameInterface = () => {
       // Resolve bet using Supabase
       const { data, error } = await supabase.rpc('resolve_bet', {
         p_bet_id: currentBetId,
-        p_multiplier: finalMultiplier,
-        p_won: isWin
+        p_cashout_multiplier: finalMultiplier,
+        p_crashed: !isWin
       });
 
       if (error) {

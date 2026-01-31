@@ -19,7 +19,7 @@ export const SupportTicketForm = ({ isOpen, onClose }: SupportTicketFormProps) =
   const [category, setCategory] = useState('');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
-  const [userEmail, setUserEmail] = useState('');
+  // userEmail state removed - we use the logged-in user instead
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
 
@@ -36,7 +36,16 @@ export const SupportTicketForm = ({ isOpen, onClose }: SupportTicketFormProps) =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!category || !subject || !description || !userEmail) {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to submit a support ticket.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!category || !subject || !description) {
       toast({
         title: "Missing Information",
         description: "Please fill in all fields.",
@@ -51,8 +60,7 @@ export const SupportTicketForm = ({ isOpen, onClose }: SupportTicketFormProps) =
       const { error } = await supabase
         .from('support_tickets')
         .insert({
-          user_id: user?.id || null,
-          email: userEmail,
+          user_id: user.id,
           subject: `[${category}] ${subject}`,
           message: description,
           status: 'open'
@@ -69,7 +77,6 @@ export const SupportTicketForm = ({ isOpen, onClose }: SupportTicketFormProps) =
       setCategory('');
       setSubject('');
       setDescription('');
-      setUserEmail('');
       onClose();
     } catch (error) {
       console.error('Error submitting ticket:', error);
@@ -104,18 +111,11 @@ export const SupportTicketForm = ({ isOpen, onClose }: SupportTicketFormProps) =
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="email" className="text-white">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              value={userEmail}
-              onChange={(e) => setUserEmail(e.target.value)}
-              className="bg-slate-700 border-slate-600 text-white"
-              placeholder="your.email@example.com"
-              required
-            />
-          </div>
+          {!user && (
+            <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 text-yellow-400 text-sm">
+              Please log in to submit a support ticket.
+            </div>
+          )}
 
           <div>
             <Label htmlFor="category" className="text-white">Category</Label>

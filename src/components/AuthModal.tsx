@@ -49,7 +49,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
             .eq('id', data.user.id)
             .single();
           
-          onLogin(userProfile?.username || data.user.email?.split('@')[0] || 'User');
+          onLogin(userProfile?.username ?? data.user.email?.split('@')[0] ?? 'User');
           toast({
             title: "Welcome back!",
             description: "Successfully signed in.",
