@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,10 +5,14 @@ import { Plane, TrendingUp, Shield, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { AuthModal } from "@/components/AuthModal";
+import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const { user } = useAuth();
+  const { t } = useLanguage();
 
   const generateRandomUsername = () => {
     const adjectives = ['Flying', 'Sky', 'Turbo', 'Rocket', 'Cyber', 'Neon', 'Elite', 'Alpha', 'Storm', 'Phoenix'];
@@ -33,12 +36,22 @@ export const HeroSection = () => {
     }));
 
     toast({
-      title: "Demo Account Created!",
-      description: `Welcome ${username}! You have 1,000 USDT to play with.`,
+      title: t('auth.demoCreated'),
+      description: `${t('auth.welcome')} ${username}! ${t('auth.demoBalance')}`,
     });
 
     // Navigate to game page
     navigate('/game');
+  };
+
+  const handleStartFlying = () => {
+    if (user) {
+      // User is logged in, go to game
+      navigate('/game');
+    } else {
+      // User is not logged in, show auth modal
+      setShowAuthModal(true);
+    }
   };
 
   const handleLogin = (username: string) => {
@@ -61,7 +74,7 @@ export const HeroSection = () => {
           <div className="mb-8">
             <div className="inline-flex items-center bg-gradient-to-r from-cyan-500/20 to-blue-500/20 backdrop-blur-sm border border-cyan-500/30 rounded-full px-6 py-2 mb-6">
               <Zap className="h-4 w-4 text-cyan-400 mr-2" />
-              <span className="text-cyan-400 font-semibold">Next-Gen Crypto Gaming</span>
+              <span className="text-cyan-400 font-semibold">{t('hero.badge')}</span>
             </div>
             
             <h1 className="text-6xl md:text-8xl font-bold mb-6">
@@ -72,8 +85,7 @@ export const HeroSection = () => {
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Navigate through multiplier zones, avoid the bombs, and cash out at the perfect moment. 
-              The ultimate aviation-themed crypto betting experience.
+              {t('hero.tagline')}
             </p>
           </div>
 
@@ -82,10 +94,10 @@ export const HeroSection = () => {
             <Button 
               size="lg" 
               className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-4 px-8 text-lg"
-              onClick={() => setShowAuthModal(true)}
+              onClick={handleStartFlying}
             >
               <Plane className="h-5 w-5 mr-2" />
-              Start Flying Now
+              {t('hero.startFlying')}
             </Button>
             <Button 
               variant="outline" 
@@ -93,7 +105,7 @@ export const HeroSection = () => {
               className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 py-4 px-8 text-lg"
               onClick={handlePlayDemo}
             >
-              Play Demo
+              {t('hero.playDemo')}
             </Button>
           </div>
 
@@ -101,15 +113,15 @@ export const HeroSection = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             <div className="text-center">
               <div className="text-3xl font-bold text-cyan-400 mb-2">$2.5M+</div>
-              <div className="text-gray-400">Total Winnings</div>
+              <div className="text-gray-400">{t('hero.totalWinnings')}</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-400 mb-2">10,000+</div>
-              <div className="text-gray-400">Active Players</div>
+              <div className="text-gray-400">{t('hero.activePlayers')}</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-blue-400 mb-2">99.9%</div>
-              <div className="text-gray-400">Uptime</div>
+              <div className="text-gray-400">{t('hero.uptime')}</div>
             </div>
           </div>
         </div>
@@ -121,10 +133,9 @@ export const HeroSection = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full mb-4">
                 <TrendingUp className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Dynamic Multipliers</h3>
+              <h3 className="text-xl font-bold text-white mb-3">{t('features.dynamicMultipliers')}</h3>
               <p className="text-gray-400">
-                Navigate through randomized multiplier zones ranging from 1.1x to 100x. 
-                Each flight is unique and unpredictable.
+                {t('features.dynamicMultipliersDesc')}
               </p>
             </div>
           </Card>
@@ -134,10 +145,9 @@ export const HeroSection = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mb-4">
                 <Shield className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Provably Fair</h3>
+              <h3 className="text-xl font-bold text-white mb-3">{t('features.provablyFair')}</h3>
               <p className="text-gray-400">
-                Transparent, blockchain-verified randomness ensures every game is fair. 
-                Verify results with cryptographic proof.
+                {t('features.provablyFairDesc')}
               </p>
             </div>
           </Card>
@@ -147,10 +157,9 @@ export const HeroSection = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full mb-4">
                 <Zap className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">Instant Payouts</h3>
+              <h3 className="text-xl font-bold text-white mb-3">{t('features.instantPayouts')}</h3>
               <p className="text-gray-400">
-                Lightning-fast crypto withdrawals. Cash out your winnings instantly 
-                to your wallet with minimal fees.
+                {t('features.instantPayoutsDesc')}
               </p>
             </div>
           </Card>
@@ -158,14 +167,14 @@ export const HeroSection = () => {
 
         {/* Game Preview */}
         <div className="text-center">
-          <h2 className="text-4xl font-bold text-white mb-8">Experience the Thrill</h2>
+          <h2 className="text-4xl font-bold text-white mb-8">{t('features.experienceThrill')}</h2>
           <div className="relative max-w-4xl mx-auto">
             <Card className="bg-slate-800/30 backdrop-blur-sm border-cyan-500/20 p-8">
               <div className="aspect-video bg-gradient-to-br from-slate-900 to-slate-700 rounded-lg flex items-center justify-center">
                 <div className="text-center">
                   <Plane className="h-16 w-16 text-cyan-400 mx-auto mb-4 animate-bounce" />
-                  <p className="text-xl text-gray-300">Live Game Demo</p>
-                  <p className="text-gray-400">Click "Start Flying Now" to begin</p>
+                  <p className="text-xl text-gray-300">{t('features.liveGameDemo')}</p>
+                  <p className="text-gray-400">{t('features.clickToBegin')}</p>
                 </div>
               </div>
             </Card>
