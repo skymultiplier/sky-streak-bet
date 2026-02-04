@@ -10,6 +10,7 @@ import { useSoundEffects } from "../hooks/useSoundEffects";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MultiplierBox {
   id: number;
@@ -34,6 +35,7 @@ export const GameInterface = () => {
 
   const { playBetSound, playWinSound, startBackgroundMusic, stopBackgroundMusic } = useSoundEffects();
   const { user, userProfile, refreshProfile, balance, username, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Start background music when component mounts
@@ -167,8 +169,8 @@ export const GameInterface = () => {
 
     if (betAmountNum > balance) {
       toast({
-        title: "Insufficient Balance",
-        description: "You don't have enough funds to place this bet.",
+        title: t('game.insufficientBalance'),
+        description: t('game.insufficientBalanceDesc'),
         variant: "destructive",
       });
       return;
@@ -186,7 +188,7 @@ export const GameInterface = () => {
 
       if (error) {
         toast({
-          title: "Bet Failed",
+          title: t('game.betFailed'),
           description: error.message,
           variant: "destructive",
         });
@@ -196,8 +198,8 @@ export const GameInterface = () => {
       const result = data as { success: boolean; bet_id?: string; new_balance?: number; error?: string };
       if (!result.success) {
         toast({
-          title: "Bet Failed",
-          description: result.error || "Failed to place bet",
+          title: t('game.betFailed'),
+          description: result.error || t('game.failedToPlaceBet'),
           variant: "destructive",
         });
         return;
@@ -214,8 +216,8 @@ export const GameInterface = () => {
     } catch (error) {
       console.error('Error placing bet:', error);
       toast({
-        title: "Error",
-        description: "Failed to place bet. Please try again.",
+        title: t('game.error'),
+        description: t('game.failedToPlaceBet'),
         variant: "destructive",
       });
     }
@@ -228,8 +230,8 @@ export const GameInterface = () => {
     
     if (parseFloat(betAmount) > currentBalance) {
       toast({
-        title: "Insufficient Balance",
-        description: "You don't have enough demo funds to place this bet.",
+        title: t('game.insufficientBalance'),
+        description: t('game.insufficientDemoBalance'),
         variant: "destructive",
       });
       return;
@@ -263,8 +265,8 @@ export const GameInterface = () => {
 
     if (!currentBetId) {
       toast({
-        title: "Error",
-        description: "No active bet found.",
+        title: t('game.error'),
+        description: t('game.noActiveBet'),
         variant: "destructive",
       });
       return;
@@ -281,8 +283,8 @@ export const GameInterface = () => {
       if (error) {
         console.error('Error resolving bet:', error);
         toast({
-          title: "Error",
-          description: "Failed to resolve bet.",
+          title: t('game.error'),
+          description: t('game.failedToResolveBet'),
           variant: "destructive",
         });
         return;
@@ -299,8 +301,8 @@ export const GameInterface = () => {
         setTimeout(() => setShowWinningEffect(false), 3000);
         
         toast({
-          title: "Congratulations!",
-          description: `You won $${(result.payout || 0).toFixed(2)}!`,
+          title: t('game.congratulations'),
+          description: `${t('game.youWon')} $${(result.payout || 0).toFixed(2)}!`,
         });
       } else {
         setLossStreak(prev => prev + 1); // Increment streak on loss
@@ -312,8 +314,8 @@ export const GameInterface = () => {
     } catch (error) {
       console.error('Error resolving bet:', error);
       toast({
-        title: "Error",
-        description: "Failed to resolve bet.",
+        title: t('game.error'),
+        description: t('game.failedToResolveBet'),
         variant: "destructive",
       });
     }
@@ -339,8 +341,8 @@ export const GameInterface = () => {
       localStorage.setItem('demoBalance', currentBalance.toString());
       
       toast({
-        title: "Demo Win!",
-        description: `You won $${currentWinnings.toFixed(2)} in demo mode!`,
+        title: t('game.demoWin'),
+        description: `${t('game.youWon')} $${currentWinnings.toFixed(2)}!`,
       });
     } else {
       setLossStreak(prev => prev + 1); // Increment streak on loss
@@ -394,8 +396,8 @@ export const GameInterface = () => {
   const replenishDemoBalance = () => {
     localStorage.setItem('demoBalance', '1000');
     toast({
-      title: "Demo Balance Replenished",
-      description: "Your demo account has been topped up with $1000 USDT!",
+      title: t('game.demoReplenished'),
+      description: t('game.demoReplenishedDesc'),
     });
   };
 
@@ -409,7 +411,7 @@ export const GameInterface = () => {
             <Link to="/my-account" className="flex items-center space-x-2 hover:bg-slate-700/50 rounded-lg px-2 py-1 transition-colors">
               <User className="h-4 w-4 text-cyan-400" />
               <span className="text-sm font-medium text-white">
-                {isDemoMode ? 'Demo User' : (username || 'User')}
+                {isDemoMode ? t('game.demoUser') : (username || t('game.user'))}
               </span>
             </Link>
           )}
@@ -422,7 +424,7 @@ export const GameInterface = () => {
             <div className={`text-xs font-medium ${
               isDemoMode ? 'text-yellow-400' : 'text-green-400'
             }`}>
-              {isDemoMode ? 'Demo' : 'Real'}
+              {isDemoMode ? t('game.demo') : t('game.real')}
             </div>
             {isDemoMode && currentBalance < 50 && (
               <Button
@@ -431,7 +433,7 @@ export const GameInterface = () => {
                 variant="outline"
                 className="mt-1 text-xs px-2 py-1 h-6"
               >
-                Replenish
+                {t('game.replenish')}
               </Button>
             )}
           </div>
@@ -439,7 +441,7 @@ export const GameInterface = () => {
           {/* Mode Toggle */}
           <div className="flex items-center space-x-2">
             <span className={`text-sm font-medium ${isDemoMode ? 'text-yellow-400' : 'text-gray-400'}`}>
-              Demo
+              {t('game.demo')}
             </span>
             <Switch
               checked={!isDemoMode}
@@ -447,7 +449,7 @@ export const GameInterface = () => {
               className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-yellow-500"
             />
             <span className={`text-sm font-medium ${!isDemoMode ? 'text-green-400' : 'text-gray-400'}`}>
-              Real
+              {t('game.real')}
             </span>
           </div>
         </div>
@@ -566,7 +568,7 @@ export const GameInterface = () => {
                     {/* Winner text */}
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-3 rounded-lg font-bold text-lg animate-pulse shadow-lg">
-                        🎉 BIG WIN! 🎉
+                        {t('game.bigWin')}
                       </div>
                     </div>
                   </div>
@@ -580,10 +582,10 @@ export const GameInterface = () => {
                     gameStatus === "collect" ? "bg-blue-500/20 text-blue-400" :
                     "bg-red-500/20 text-red-400"
                   }`}>
-                    {gameStatus === "waiting" ? "Ready" :
-                     gameStatus === "flying" ? "Flying" :
-                     gameStatus === "collect" ? "Collect!" :
-                     "Crashed"}
+                    {gameStatus === "waiting" ? t('game.ready') :
+                     gameStatus === "flying" ? t('game.flying') :
+                     gameStatus === "collect" ? t('game.collect') :
+                     t('game.crashed')}
                   </div>
                 </div>
               </div>
@@ -595,20 +597,20 @@ export const GameInterface = () => {
             
             {/* Bet Controls */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
-              <h3 className="text-lg font-semibold text-white mb-4">✈️ Flight Controls</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">{t('game.flightControls')}</h3>
               
               <div className="space-y-4">
                 {/* Bet Amount */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Bet Amount (USDT)
+                    {t('game.betAmount')}
                   </label>
                   <Input
                     type="number"
                     value={betAmount}
                     onChange={(e) => setBetAmount(e.target.value)}
                     className="bg-slate-700 border-slate-600 text-white"
-                    placeholder="Min: $10"
+                    placeholder={t('game.minBet')}
                     min="10"
                     step="0.01"
                     disabled={gameStatus !== "waiting"}
@@ -638,7 +640,7 @@ export const GameInterface = () => {
                   onClick={() => setBetAmount(Math.floor(currentBalance).toString())}
                   disabled={gameStatus !== "waiting"}
                 >
-                  Max Bet (${Math.floor(currentBalance)})
+                  {t('game.maxBet')} (${Math.floor(currentBalance)})
                 </Button>
 
                 {/* Bet/Cash Out Button */}
@@ -648,7 +650,7 @@ export const GameInterface = () => {
                     disabled={!betAmount || parseFloat(betAmount) <= 0 || parseFloat(betAmount) > currentBalance}
                     className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 text-lg"
                   >
-                    🚀 Place Bet & Fly!
+                    {t('game.placeBet')}
                   </Button>
                 )}
 
@@ -657,7 +659,7 @@ export const GameInterface = () => {
                     onClick={cashOut}
                     className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-3 text-lg animate-pulse"
                   >
-                    💰 Cash Out ${currentWinnings.toFixed(2)}
+                    {t('game.cashOut')} ${currentWinnings.toFixed(2)}
                   </Button>
                 )}
 
@@ -666,7 +668,7 @@ export const GameInterface = () => {
                     onClick={collectWinnings}
                     className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-bold py-3 text-lg"
                   >
-                    🎁 Collect Winnings
+                    {t('game.collectWinnings')}
                   </Button>
                 )}
               </div>
@@ -674,25 +676,25 @@ export const GameInterface = () => {
 
             {/* Recent Results */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
-              <h3 className="text-lg font-semibold text-white mb-4">📊 Game Stats</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">{t('game.gameStats')}</h3>
               
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Current Balance:</span>
+                  <span className="text-gray-400">{t('game.currentBalance')}</span>
                   <span className="text-cyan-400 font-bold">${currentBalance.toFixed(2)}</span>
                 </div>
                 
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Loss Streak:</span>
+                  <span className="text-gray-400">{t('game.lossStreak')}</span>
                   <span className={`font-bold ${lossStreak > 5 ? 'text-red-400' : lossStreak > 2 ? 'text-yellow-400' : 'text-green-400'}`}>
                     {lossStreak}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Mode:</span>
+                  <span className="text-gray-400">{t('game.mode')}</span>
                   <span className={`font-bold ${isDemoMode ? 'text-yellow-400' : 'text-green-400'}`}>
-                    {isDemoMode ? 'Demo' : 'Real Money'}
+                    {isDemoMode ? t('game.demo') : t('game.realMoney')}
                   </span>
                 </div>
               </div>
@@ -700,24 +702,24 @@ export const GameInterface = () => {
 
             {/* Navigation Links */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
-              <h3 className="text-lg font-semibold text-white mb-4">🔗 Quick Links</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">{t('game.quickLinks')}</h3>
               
               <div className="space-y-2">
                 <Link to="/history">
                   <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
-                    📈 Betting History
+                    {t('game.bettingHistory')}
                   </Button>
                 </Link>
                 
                 <Link to="/leaderboard">
                   <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
-                    🏆 Leaderboard
+                    {t('game.leaderboard')}
                   </Button>
                 </Link>
                 
                 <Link to="/my-account">
                   <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
-                    💳 My Account
+                    {t('game.myAccount')}
                   </Button>
                 </Link>
               </div>
