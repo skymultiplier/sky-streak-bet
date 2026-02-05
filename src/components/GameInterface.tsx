@@ -377,8 +377,8 @@ export const GameInterface = () => {
     } else {
       // Switching to real mode - check if user is logged in
       if (!isAuthenticated) {
-        setShowAuthModal(true);
         setIsDemoMode(true); // Keep in demo mode if not authenticated
+        setShowAuthModal(true);
         return;
       }
     }
@@ -733,6 +733,7 @@ export const GameInterface = () => {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onLogin={handleLogin}
+        defaultToSignUp={true}
       />
     </div>
   );
