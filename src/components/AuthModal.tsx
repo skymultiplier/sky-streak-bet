@@ -12,10 +12,11 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLogin: (username: string) => void;
+  defaultToSignUp?: boolean;
 }
 
-export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
-  const [isLogin, setIsLogin] = useState(true);
+export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }: AuthModalProps) => {
+  const [isLogin, setIsLogin] = useState(!defaultToSignUp);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
