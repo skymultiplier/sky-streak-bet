@@ -186,6 +186,7 @@ export const HeroSection = () => {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onLogin={handleLogin}
+        defaultToSignUp={true}
       />
     </div>
   );

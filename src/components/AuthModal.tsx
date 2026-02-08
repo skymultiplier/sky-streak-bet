@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { User, Mail, Lock, Plane } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -21,6 +21,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +29,6 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
     
     try {
       if (isLogin) {
-        // Sign in with email and password
         const { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password: password,
@@ -36,7 +36,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
 
         if (error) {
           toast({
-            title: "Login Failed",
+            title: t('auth.loginFailed'),
             description: error.message,
             variant: "destructive",
           });
@@ -52,13 +52,12 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
           
           onLogin(userProfile?.username ?? data.user.email?.split('@')[0] ?? 'User');
           toast({
-            title: "Welcome back!",
-            description: "Successfully signed in.",
+            title: t('auth.welcomeBack'),
+            description: t('auth.signedIn'),
           });
           onClose();
         }
       } else {
-        // Sign up with email, password, and username
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password: password,
@@ -72,7 +71,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
 
         if (error) {
           toast({
-            title: "Sign Up Failed",
+            title: t('auth.signUpFailed'),
             description: error.message,
             variant: "destructive",
           });
@@ -81,16 +80,16 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
 
         if (data.user) {
           toast({
-            title: "Account Created!",
-            description: "Please check your email to confirm your account.",
+            title: t('auth.accountCreated'),
+            description: t('auth.checkEmail'),
           });
           onClose();
         }
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: t('auth.error'),
+        description: t('auth.unexpectedError'),
         variant: "destructive",
       });
     } finally {
@@ -104,7 +103,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold text-white flex items-center justify-center gap-2">
             <Plane className="h-6 w-6 text-cyan-400" />
-            {isLogin ? 'Welcome Back!' : 'Join the Flight!'}
+            {isLogin ? t('auth.welcomeBack') : t('auth.joinFlight')}
           </DialogTitle>
         </DialogHeader>
         
@@ -113,7 +112,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Email
+                  {t('auth.email')}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -122,7 +121,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10 bg-slate-600 border-slate-500 text-white"
-                    placeholder="Enter your email"
+                    placeholder={t('auth.emailPlaceholder')}
                     required
                   />
                 </div>
@@ -131,7 +130,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
               {!isLogin && (
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Username
+                    {t('auth.username')}
                   </label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -140,7 +139,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       className="pl-10 bg-slate-600 border-slate-500 text-white"
-                      placeholder="Enter your username"
+                      placeholder={t('auth.usernamePlaceholder')}
                       required
                     />
                   </div>
@@ -149,7 +148,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Password
+                  {t('auth.password')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -158,7 +157,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 bg-slate-600 border-slate-500 text-white"
-                    placeholder="Enter your password"
+                    placeholder={t('auth.passwordPlaceholder')}
                     required
                     minLength={6}
                   />
@@ -170,7 +169,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
                 disabled={loading}
                 className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3"
               >
-                {loading ? 'Processing...' : (isLogin ? '🛫 Start Flying!' : '✈️ Create Account')}
+                {loading ? t('auth.processing') : (isLogin ? t('auth.startFlying') : t('auth.createAccount'))}
               </Button>
             </div>
           </form>
@@ -181,7 +180,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
               onClick={() => setIsLogin(!isLogin)}
               className="text-cyan-400 hover:text-cyan-300 text-sm"
             >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Log in"}
+              {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}
             </button>
           </div>
         </Card>
