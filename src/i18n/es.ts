@@ -67,6 +67,9 @@ export const esTranslations: Record<string, string> = {
   'auth.signedIn': 'Sesión iniciada exitosamente.',
   'auth.error': 'Error',
   'auth.unexpectedError': 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.',
+  'auth.referralCode': 'Código de Referido',
+  'auth.referralCodePlaceholder': 'Ingresa código de referido',
+  'auth.referralCodeHint': 'Opcional — ¿tienes un código de un amigo?',
 
   // Language
   'language.select': 'Idioma',
@@ -225,4 +228,26 @@ export const esTranslations: Record<string, string> = {
   'admin.support': 'Soporte',
   'admin.balance': 'Saldo',
   'admin.otp': 'OTP',
+  'admin.referrals': 'Referidos',
+  'admin.referralManagement': 'Gestión de Referidos',
+  'admin.referrer': 'Referente',
+  'admin.referred': 'Usuario Referido',
+  'admin.depositStatus': 'Depósito Hecho',
+  'admin.rewardPaid': 'Recompensa Pagada',
+  'admin.totalReferrals': 'Total Referidos',
+  'admin.qualifiedReferrals': 'Calificados (Depositados)',
+  'admin.rewardsPaid': 'Recompensas Pagadas',
+  'admin.pendingRewards': 'Recompensas Pendientes',
+
+  // Referral Program
+  'referral.title': 'Programa de Referidos',
+  'referral.yourCode': 'Tu Código de Referido',
+  'referral.share': 'Comparte este código con amigos',
+  'referral.howItWorks': 'Cómo funciona',
+  'referral.step1': 'Comparte tu código de referido con amigos',
+  'referral.step2': 'Se registran usando tu código',
+  'referral.step3': 'Cuando 10 usuarios referidos hagan un depósito, ¡ganas $50!',
+  'referral.progress': 'Progreso de Referidos',
+  'referral.qualified': 'calificados de 10 necesarios',
+  'referral.copied': '¡Código de referido copiado!',
 };

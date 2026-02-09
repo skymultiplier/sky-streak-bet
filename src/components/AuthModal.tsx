@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { User, Mail, Lock, Plane } from "lucide-react";
+import { User, Mail, Lock, Plane, Gift } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,6 +20,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [loading, setLoading] = useState(false);
   const { t } = useLanguage();
 
@@ -65,6 +66,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
             emailRedirectTo: `${window.location.origin}/`,
             data: {
               username: username.trim(),
+              referral_code: referralCode.trim() || undefined,
             }
           }
         });
@@ -128,22 +130,41 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
               </div>
 
               {!isLogin && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    {t('auth.username')}
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="pl-10 bg-slate-600 border-slate-500 text-white"
-                      placeholder={t('auth.usernamePlaceholder')}
-                      required
-                    />
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      {t('auth.username')}
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="pl-10 bg-slate-600 border-slate-500 text-white"
+                        placeholder={t('auth.usernamePlaceholder')}
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      {t('auth.referralCode')}
+                    </label>
+                    <div className="relative">
+                      <Gift className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        type="text"
+                        value={referralCode}
+                        onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                        className="pl-10 bg-slate-600 border-slate-500 text-white uppercase"
+                        placeholder={t('auth.referralCodePlaceholder')}
+                        maxLength={8}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{t('auth.referralCodeHint')}</p>
+                  </div>
+                </>
               )}
 
               <div>

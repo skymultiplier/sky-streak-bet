@@ -50,6 +50,39 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          created_at: string
+          deposit_made: boolean
+          id: string
+          referred_id: string
+          referrer_id: string
+          reward_paid: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deposit_made?: boolean
+          id?: string
+          referred_id: string
+          referrer_id: string
+          reward_paid?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deposit_made?: boolean
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          reward_paid?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       support_tickets: {
         Row: {
           admin_response: string | null
@@ -142,6 +175,8 @@ export type Database = {
           balance: number
           created_at: string
           id: string
+          referral_code: string | null
+          referred_by: string | null
           status: string
           updated_at: string
           username: string
@@ -150,6 +185,8 @@ export type Database = {
           balance?: number
           created_at?: string
           id: string
+          referral_code?: string | null
+          referred_by?: string | null
           status?: string
           updated_at?: string
           username: string
@@ -158,6 +195,8 @@ export type Database = {
           balance?: number
           created_at?: string
           id?: string
+          referral_code?: string | null
+          referred_by?: string | null
           status?: string
           updated_at?: string
           username?: string
@@ -177,6 +216,7 @@ export type Database = {
         Args: { p_suspend: boolean; p_target_user_id: string }
         Returns: Json
       }
+      check_referral_reward: { Args: { p_user_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

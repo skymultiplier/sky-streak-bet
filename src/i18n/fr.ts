@@ -67,6 +67,9 @@ export const frTranslations: Record<string, string> = {
   'auth.signedIn': 'Connexion réussie.',
   'auth.error': 'Erreur',
   'auth.unexpectedError': "Une erreur inattendue s'est produite. Veuillez réessayer.",
+  'auth.referralCode': 'Code de Parrainage',
+  'auth.referralCodePlaceholder': 'Entrez le code de parrainage',
+  'auth.referralCodeHint': 'Optionnel — vous avez un code d\'un ami?',
 
   // Language
   'language.select': 'Langue',
@@ -225,4 +228,26 @@ export const frTranslations: Record<string, string> = {
   'admin.support': 'Support',
   'admin.balance': 'Solde',
   'admin.otp': 'OTP',
+  'admin.referrals': 'Parrainages',
+  'admin.referralManagement': 'Gestion des Parrainages',
+  'admin.referrer': 'Parrain',
+  'admin.referred': 'Utilisateur Parrainé',
+  'admin.depositStatus': 'Dépôt Effectué',
+  'admin.rewardPaid': 'Récompense Payée',
+  'admin.totalReferrals': 'Total Parrainages',
+  'admin.qualifiedReferrals': 'Qualifiés (Déposés)',
+  'admin.rewardsPaid': 'Récompenses Payées',
+  'admin.pendingRewards': 'Récompenses en Attente',
+
+  // Referral Program
+  'referral.title': 'Programme de Parrainage',
+  'referral.yourCode': 'Votre Code de Parrainage',
+  'referral.share': 'Partagez ce code avec vos amis',
+  'referral.howItWorks': 'Comment ça marche',
+  'referral.step1': 'Partagez votre code de parrainage avec des amis',
+  'referral.step2': 'Ils s\'inscrivent avec votre code',
+  'referral.step3': 'Quand 10 utilisateurs parrainés font un dépôt, vous gagnez 50$!',
+  'referral.progress': 'Progression du Parrainage',
+  'referral.qualified': 'qualifiés sur 10 nécessaires',
+  'referral.copied': 'Code de parrainage copié!',
 };
