@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Wallet, ArrowUpRight, ArrowDownLeft, DollarSign, CreditCard, Banknote, Clock, TrendingUp, LogOut } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, DollarSign, CreditCard, Banknote, Clock, TrendingUp, LogOut, Gift, Copy, Check } from "lucide-react";
 import { EnhancedPaymentModal } from "./EnhancedPaymentModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Progress } from "@/components/ui/progress";
 
 interface Transaction {
   id: string;
@@ -24,9 +25,15 @@ export const MyAccount = () => {
   const [paymentType, setPaymentType] = useState<'deposit' | 'withdraw'>('deposit');
   const [amount, setAmount] = useState('');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [referralCode, setReferralCode] = useState('');
+  const [qualifiedReferrals, setQualifiedReferrals] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (user) { fetchTransactions(); }
+    if (user) {
+      fetchTransactions();
+      fetchReferralInfo();
+    }
   }, [user]);
 
   const fetchTransactions = async () => {
@@ -41,6 +48,35 @@ export const MyAccount = () => {
       if (error) { console.error('Error fetching transactions:', error); return; }
       setTransactions(data || []);
     } catch (error) { console.error('Error fetching transactions:', error); }
+  };
+
+  const fetchReferralInfo = async () => {
+    if (!user) return;
+    try {
+      // Get user's referral code
+      const { data: userData } = await supabase
+        .from('users')
+        .select('referral_code')
+        .eq('id', user.id)
+        .single();
+      if (userData?.referral_code) setReferralCode(userData.referral_code);
+
+      // Get qualified referral count
+      const { data: referralData, error } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('referrer_id', user.id)
+        .eq('deposit_made', true)
+        .eq('reward_paid', false);
+      if (!error && referralData) setQualifiedReferrals(referralData.length);
+    } catch (error) { console.error('Error fetching referral info:', error); }
+  };
+
+  const copyReferralCode = () => {
+    navigator.clipboard.writeText(referralCode);
+    setCopied(true);
+    toast({ title: t('referral.copied') });
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleDeposit = () => { setPaymentType('deposit'); setShowPaymentModal(true); };
@@ -169,6 +205,45 @@ export const MyAccount = () => {
               </div>
             </Card>
           </div>
+
+          {/* Referral Program Card */}
+          <Card className="bg-gradient-to-r from-purple-900/30 to-cyan-900/30 border-purple-500/20 p-6">
+            <div className="flex items-center mb-4">
+              <Gift className="h-6 w-6 text-purple-400 mr-3" />
+              <h3 className="text-xl font-bold text-white">{t('referral.title')}</h3>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm text-gray-400 mb-3">{t('referral.yourCode')}</p>
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="bg-slate-800 border border-purple-500/30 rounded-lg px-4 py-3 font-mono text-lg text-purple-300 tracking-widest flex-1 text-center">
+                    {referralCode || '...'}
+                  </div>
+                  <Button onClick={copyReferralCode} variant="outline" size="sm" className="border-purple-500/30 text-purple-400 hover:bg-purple-500/20">
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500">{t('referral.share')}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-400 mb-2">{t('referral.progress')}</p>
+                <div className="mb-2">
+                  <Progress value={(qualifiedReferrals % 10) * 10} className="h-3" />
+                </div>
+                <p className="text-sm text-purple-300 font-medium">
+                  {qualifiedReferrals % 10}/10 {t('referral.qualified')}
+                </p>
+                <div className="mt-4 space-y-1">
+                  <p className="text-xs text-gray-500">💡 {t('referral.howItWorks')}</p>
+                  <p className="text-xs text-gray-400">1. {t('referral.step1')}</p>
+                  <p className="text-xs text-gray-400">2. {t('referral.step2')}</p>
+                  <p className="text-xs text-gray-400">3. {t('referral.step3')}</p>
+                </div>
+              </div>
+            </div>
+          </Card>
 
           <Card className="bg-slate-800/50 border-cyan-500/20 p-6">
             <h3 className="text-xl font-bold text-white mb-4">{t('account.recentTransactions')}</h3>

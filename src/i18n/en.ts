@@ -67,6 +67,9 @@ export const enTranslations: Record<string, string> = {
   'auth.signedIn': 'Successfully signed in.',
   'auth.error': 'Error',
   'auth.unexpectedError': 'An unexpected error occurred. Please try again.',
+  'auth.referralCode': 'Referral Code',
+  'auth.referralCodePlaceholder': 'Enter referral code',
+  'auth.referralCodeHint': 'Optional — got a code from a friend?',
 
   // Language
   'language.select': 'Language',
@@ -225,4 +228,26 @@ export const enTranslations: Record<string, string> = {
   'admin.support': 'Support',
   'admin.balance': 'Balance',
   'admin.otp': 'OTP',
+  'admin.referrals': 'Referrals',
+  'admin.referralManagement': 'Referral Management',
+  'admin.referrer': 'Referrer',
+  'admin.referred': 'Referred User',
+  'admin.depositStatus': 'Deposit Made',
+  'admin.rewardPaid': 'Reward Paid',
+  'admin.totalReferrals': 'Total Referrals',
+  'admin.qualifiedReferrals': 'Qualified (Deposited)',
+  'admin.rewardsPaid': 'Rewards Paid',
+  'admin.pendingRewards': 'Pending Rewards',
+
+  // Referral Program
+  'referral.title': 'Referral Program',
+  'referral.yourCode': 'Your Referral Code',
+  'referral.share': 'Share this code with friends',
+  'referral.howItWorks': 'How it works',
+  'referral.step1': 'Share your referral code with friends',
+  'referral.step2': 'They sign up using your code',
+  'referral.step3': 'When 10 referred users make a deposit, you earn $50!',
+  'referral.progress': 'Referral Progress',
+  'referral.qualified': 'qualified of 10 needed',
+  'referral.copied': 'Referral code copied!',
 };
