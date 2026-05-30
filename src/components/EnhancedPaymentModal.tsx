@@ -102,7 +102,7 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
         <p className="text-xs text-gray-400 text-center">{t('payment.minimum')}: ${getMinAmount()} USDT</p>
       </div>
       <Button onClick={handleAmountContinue} disabled={!isAmountValid()}
-        className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 h-12 font-semibold">
+        className="w-full bg-cyan-600 hover:bg-cyan-700 h-12 font-semibold">
         {t('payment.continue')}
         <ChevronRight className="h-4 w-4 ml-2" />
       </Button>
@@ -140,7 +140,7 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
         <Card onClick={handleCryptoMethodSelect}
           className="bg-slate-700/50 border-slate-600 hover:border-cyan-500/50 p-5 cursor-pointer transition-all hover:bg-slate-700/70">
           <div className="flex items-center space-x-4">
-            <div className="h-14 w-14 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
+            <div className="h-14 w-14 rounded-full bg-cyan-500/20 flex items-center justify-center">
               <Coins className="h-7 w-7 text-cyan-400" />
             </div>
             <div className="flex-1">
@@ -280,7 +280,7 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
             </div>
           </div>
         </Card>
-        <Button onClick={onClose} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700">
+        <Button onClick={onClose} className="w-full bg-cyan-600 hover:bg-cyan-700">
           {t('payment.sentPayment')}
         </Button>
       </div>
@@ -327,7 +327,7 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
           </div>
         </Card>
         <Button onClick={handleWithdrawSubmit} disabled={!walletAddress.trim()}
-          className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 h-12 font-semibold">
+          className="w-full bg-cyan-600 hover:bg-cyan-700 h-12 font-semibold">
           {t('payment.confirmWithdraw')}
         </Button>
       </div>
