@@ -22,7 +22,7 @@ export const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Plane className="h-8 w-8 text-cyan-400 transform rotate-45" />
-              <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+              <span className="text-xl font-bold text-cyan-400">
                 SkyMultiplier
               </span>
             </div>

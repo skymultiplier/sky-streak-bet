@@ -210,7 +210,7 @@ export const AdminDashboard = () => {
   // Password gate
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
         <Card className="bg-slate-800/80 border-cyan-500/20 p-8 max-w-md w-full">
           <div className="text-center mb-6">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-cyan-500/20 rounded-full mb-4">
@@ -234,7 +234,7 @@ export const AdminDashboard = () => {
                 <p className="text-red-400 text-sm mt-2">{t('admin.wrongPassword')}</p>
               )}
             </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 font-semibold">
+            <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700 font-semibold">
               <Shield className="h-4 w-4 mr-2" />
               {t('admin.unlock')}
             </Button>
@@ -245,7 +245,7 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900 p-6">
+    <div className="min-h-screen bg-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <div>
