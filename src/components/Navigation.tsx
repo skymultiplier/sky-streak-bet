@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plane, History, Trophy, Menu, X, User } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
 import { useAuth } from "@/hooks/useAuth";
 import { LanguageSelector } from "./LanguageSelector";
@@ -13,10 +13,13 @@ export const Navigation = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const isMobile = useIsMobile();
   const { user, username } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const navigate = useNavigate();
+  const lp = `/${language}`;
 
-  const handleLogin = (username: string) => {
+  const handleLogin = (_username: string) => {
     setShowAuthModal(false);
+    navigate(`${lp}/game`);
   };
 
   return (
@@ -24,12 +27,12 @@ export const Navigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to={lp || '/'} className="flex items-center space-x-2">
             <div className="relative">
               <Plane className="h-8 w-8 text-cyan-400 transform rotate-45" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full animate-pulse" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full animate-pulse" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold text-cyan-400">
               SkyMultiplier
             </span>
           </Link>
@@ -37,20 +40,20 @@ export const Navigation = () => {
           {/* Desktop Navigation */}
           {!isMobile && (
             <div className="hidden md:flex items-center space-x-6">
-              <Link to="/leaderboard">
+              <Link to={`${lp}/leaderboard`}>
                 <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
                   <Trophy className="h-4 w-4 mr-2" />
                   {t('nav.leaderboard')}
                 </Button>
               </Link>
-              <Link to="/history">
+              <Link to={`${lp}/history`}>
                 <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
                   <History className="h-4 w-4 mr-2" />
                   {t('nav.history')}
                 </Button>
               </Link>
               {user && (
-                <Link to="/game">
+                <Link to={`${lp}/game`}>
                   <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
                     <Plane className="h-4 w-4 mr-2" />
                     {t('nav.gameLounge')}
@@ -59,15 +62,15 @@ export const Navigation = () => {
               )}
               <LanguageSelector />
               {user ? (
-                <Link to="/my-account">
+                <Link to={`${lp}/my-account`}>
                   <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
                     <User className="h-4 w-4 mr-2" />
                     {username || t('nav.account')}
                   </Button>
                 </Link>
               ) : (
-                <Button 
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
+                <Button
+                  className="bg-cyan-600 hover:bg-cyan-700"
                   onClick={() => setShowAuthModal(true)}
                 >
                   {t('nav.login')}
@@ -96,20 +99,20 @@ export const Navigation = () => {
         {isMobile && isMenuOpen && (
           <div className="md:hidden border-t border-cyan-500/20 py-4">
             <div className="flex flex-col space-y-2">
-              <Link to="/leaderboard">
+              <Link to={`${lp}/leaderboard`}>
                 <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">
                   <Trophy className="h-4 w-4 mr-2" />
                   {t('nav.leaderboard')}
                 </Button>
               </Link>
-              <Link to="/history">
+              <Link to={`${lp}/history`}>
                 <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">
                   <History className="h-4 w-4 mr-2" />
                   {t('nav.history')}
                 </Button>
               </Link>
               {user && (
-                <Link to="/game">
+                <Link to={`${lp}/game`}>
                   <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">
                     <Plane className="h-4 w-4 mr-2" />
                     {t('nav.gameLounge')}
@@ -117,15 +120,15 @@ export const Navigation = () => {
                 </Link>
               )}
               {user ? (
-                <Link to="/my-account">
+                <Link to={`${lp}/my-account`}>
                   <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">
                     <User className="h-4 w-4 mr-2" />
                     {username || t('nav.account')}
                   </Button>
                 </Link>
               ) : (
-                <Button 
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 mt-2"
+                <Button
+                  className="bg-cyan-600 hover:bg-cyan-700 mt-2"
                   onClick={() => setShowAuthModal(true)}
                 >
                   {t('nav.login')}
@@ -134,6 +137,7 @@ export const Navigation = () => {
             </div>
           </div>
         )}
+
       </div>
 
       <AuthModal

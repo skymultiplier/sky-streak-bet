@@ -402,7 +402,7 @@ export const GameInterface = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900">
+    <div className="min-h-screen bg-slate-900">
       {/* Demo/Real Mode Toggle with Balance and Username - Top Right */}
       <div className="absolute top-4 right-4 z-50">
         <div className="flex items-center space-x-4 bg-slate-800/50 backdrop-blur-sm border border-cyan-500/20 rounded-lg px-4 py-2">
@@ -648,7 +648,7 @@ export const GameInterface = () => {
                   <Button
                     onClick={startGame}
                     disabled={!betAmount || parseFloat(betAmount) <= 0 || parseFloat(betAmount) > currentBalance}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 text-lg"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 text-lg"
                   >
                     {t('game.placeBet')}
                   </Button>
@@ -657,7 +657,7 @@ export const GameInterface = () => {
                 {gameStatus === "flying" && (
                   <Button
                     onClick={cashOut}
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-3 text-lg animate-pulse"
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 text-lg animate-pulse"
                   >
                     {t('game.cashOut')} ${currentWinnings.toFixed(2)}
                   </Button>
@@ -666,7 +666,7 @@ export const GameInterface = () => {
                 {(gameStatus === "collect" || gameStatus === "crashed") && (
                   <Button
                     onClick={collectWinnings}
-                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-bold py-3 text-lg"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 text-lg"
                   >
                     {t('game.collectWinnings')}
                   </Button>

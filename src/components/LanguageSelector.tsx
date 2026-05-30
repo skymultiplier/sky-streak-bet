@@ -12,11 +12,13 @@ const languages: { code: Language; name: string; flag: string }[] = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
   { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'ro', name: 'Română', flag: '🇷🇴' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+  { code: 'pt', name: 'Português', flag: '🇵🇹' },
 ];
 
 export const LanguageSelector = () => {
-  const { language, setLanguage, t } = useLanguage();
-
+  const { language, setLanguage } = useLanguage();
   const currentLanguage = languages.find(l => l.code === language);
 
   return (
@@ -24,7 +26,8 @@ export const LanguageSelector = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="text-gray-300 hover:text-cyan-400">
           <Globe className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">{currentLanguage?.flag}</span>
+          <span className="hidden sm:inline mr-1">{currentLanguage?.flag}</span>
+          <span className="uppercase text-xs font-semibold">{language}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-slate-800 border-cyan-500/20">
@@ -38,6 +41,7 @@ export const LanguageSelector = () => {
           >
             <span className="mr-2">{lang.flag}</span>
             {lang.name}
+            <span className="ml-auto text-xs opacity-60 uppercase">{lang.code}</span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

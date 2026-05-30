@@ -85,6 +85,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
             title: t('auth.accountCreated'),
             description: t('auth.checkEmail'),
           });
+          onLogin(username.trim() || email.split('@')[0]);
           onClose();
         }
       }
@@ -185,10 +186,10 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
                 </div>
               </div>
 
-              <Button 
+              <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3"
+                className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3"
               >
                 {loading ? t('auth.processing') : (isLogin ? t('auth.startFlying') : t('auth.createAccount'))}
               </Button>
