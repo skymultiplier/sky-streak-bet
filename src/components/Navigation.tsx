@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plane, History, Trophy, Menu, X, User } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
 import { useAuth } from "@/hooks/useAuth";
 import { LanguageSelector } from "./LanguageSelector";
@@ -13,10 +13,13 @@ export const Navigation = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const isMobile = useIsMobile();
   const { user, username } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const navigate = useNavigate();
+  const lp = `/${language}`;
 
-  const handleLogin = (username: string) => {
+  const handleLogin = (_username: string) => {
     setShowAuthModal(false);
+    navigate(`${lp}/game`);
   };
 
   return (
