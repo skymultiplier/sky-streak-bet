@@ -108,16 +108,26 @@ export const MyAccount = () => {
       .from('referrals')
       .select('id')
       .eq('referrer_id', user.id)
-      .eq('deposit_made', true)
-      .eq('reward_paid', false);
+      .eq('deposit_made', true);
     if (referralData) setQualifiedReferrals(referralData.length);
   };
+
+  const referralLink = referralCode
+    ? `${window.location.origin}/${language}?ref=${referralCode}`
+    : '';
 
   const copyReferralCode = () => {
     navigator.clipboard.writeText(referralCode);
     setCopied(true);
     toast({ title: t('referral.copied') });
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyReferralLink = () => {
+    navigator.clipboard.writeText(referralLink);
+    setLinkCopied(true);
+    toast({ title: t('referral.linkCopied') || 'Referral link copied!' });
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   const handleDeposit = () => { setPaymentType('deposit'); setShowPaymentModal(true); };
