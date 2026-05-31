@@ -201,15 +201,9 @@ export const MyAccount = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <div className="text-3xl md:text-4xl font-bold text-cyan-400">${balance.toFixed(2)}</div>
-                  <div className="text-xs text-green-400 font-semibold">{t('account.realMoney')} • USDT</div>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleSignOut} className="border-red-500/30 text-red-400 hover:bg-red-500/20">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  {t('account.signOut')}
-                </Button>
+              <div className="text-right">
+                <div className="text-3xl md:text-4xl font-bold text-cyan-400">${balance.toFixed(2)}</div>
+                <div className="text-xs text-green-400 font-semibold">{t('account.realMoney')} • USDT</div>
               </div>
             </div>
           </Card>
