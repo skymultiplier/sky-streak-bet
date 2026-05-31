@@ -610,20 +610,27 @@ export const GameInterface = () => {
                   />
                 </div>
 
-                {/* Quick Bet Buttons */}
+                {/* Quick Bet Buttons — highlight selected */}
                 <div className="grid grid-cols-4 gap-2">
-                  {[10, 25, 50, 100].map((amount) => (
-                    <Button
-                      key={amount}
-                      variant="outline"
-                      size="sm"
-                      className="border-slate-600 text-gray-300 hover:bg-slate-700"
-                      onClick={() => setBetAmount(amount.toString())}
-                      disabled={gameStatus !== "waiting"}
-                    >
-                      ${amount}
-                    </Button>
-                  ))}
+                  {[10, 25, 50, 100].map((amount) => {
+                    const isSelected = parseFloat(betAmount) === amount;
+                    return (
+                      <Button
+                        key={amount}
+                        variant="outline"
+                        size="sm"
+                        className={
+                          isSelected
+                            ? "bg-green-500 border-green-400 text-white font-bold ring-2 ring-green-300 hover:bg-green-600"
+                            : "border-slate-600 text-gray-300 hover:bg-slate-700"
+                        }
+                        onClick={() => setBetAmount(amount.toString())}
+                        disabled={gameStatus !== "waiting"}
+                      >
+                        ${amount}
+                      </Button>
+                    );
+                  })}
                 </div>
 
                 {/* Max Bet Button */}
