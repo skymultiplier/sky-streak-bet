@@ -49,6 +49,13 @@ export const MyAccount = () => {
     }
   }, [user]);
 
+  // Scroll to referral when ?tab=referral
+  useEffect(() => {
+    if (searchParams.get('tab') === 'referral' && referralRef.current) {
+      setTimeout(() => referralRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    }
+  }, [searchParams, referralCode]);
+
   const fetchTransactions = async () => {
     if (!user) return;
     const { data } = await supabase
