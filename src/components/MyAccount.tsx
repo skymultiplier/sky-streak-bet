@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Wallet, ArrowUpRight, ArrowDownLeft, DollarSign, CreditCard, Banknote, Clock, TrendingUp, TrendingDown, LogOut, Gift, Copy, Check, Activity, Trophy } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, DollarSign, CreditCard, Banknote, Clock, TrendingUp, TrendingDown, LogOut, Gift, Copy, Check, Activity, Trophy, Share2 } from "lucide-react";
 import { EnhancedPaymentModal } from "./EnhancedPaymentModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Progress } from "@/components/ui/progress";
+import { useSearchParams } from "react-router-dom";
 
 interface Transaction {
   id: string;
