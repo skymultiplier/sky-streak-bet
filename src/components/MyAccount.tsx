@@ -21,7 +21,7 @@ interface Transaction {
 
 export const MyAccount = () => {
   const { user, loading, signOut, balance, username } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentType, setPaymentType] = useState<'deposit' | 'withdraw'>('deposit');
   const [amount, setAmount] = useState('');
@@ -29,6 +29,9 @@ export const MyAccount = () => {
   const [referralCode, setReferralCode] = useState('');
   const [qualifiedReferrals, setQualifiedReferrals] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [searchParams] = useSearchParams();
+  const referralRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState({
     totalDeposits: 0,
     totalWithdrawals: 0,
