@@ -316,23 +316,41 @@ export const MyAccount = () => {
           </div>
 
           {/* Referral */}
-          <Card className="bg-slate-800 border-purple-500/30 p-6">
-            <div className="flex items-center mb-4">
-              <Gift className="h-6 w-6 text-purple-400 mr-3" />
-              <h3 className="text-xl font-bold text-white">{t('referral.title')}</h3>
+          <Card ref={referralRef} className="bg-slate-800 border-purple-500/30 p-6 scroll-mt-20">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <Gift className="h-6 w-6 text-purple-400 mr-3" />
+                <h3 className="text-xl font-bold text-white">{t('referral.title')}</h3>
+              </div>
+              <span className="text-xs bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full font-semibold">
+                {qualifiedReferrals} {t('referral.qualifiedTotal') || 'qualified'}
+              </span>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm text-gray-400 mb-3">{t('referral.yourCode')}</p>
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="bg-slate-900 border border-purple-500/30 rounded-lg px-4 py-3 font-mono text-lg text-purple-300 tracking-widest flex-1 text-center">
-                    {referralCode || '...'}
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-400 mb-2">{t('referral.yourCode')}</p>
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-slate-900 border border-purple-500/30 rounded-lg px-4 py-3 font-mono text-lg text-purple-300 tracking-widest flex-1 text-center">
+                      {referralCode || '...'}
+                    </div>
+                    <Button onClick={copyReferralCode} variant="outline" size="sm" className="border-purple-500/30 text-purple-400 hover:bg-purple-500/20">
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
                   </div>
-                  <Button onClick={copyReferralCode} variant="outline" size="sm" className="border-purple-500/30 text-purple-400 hover:bg-purple-500/20">
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
                 </div>
-                <p className="text-xs text-gray-500">{t('referral.share')}</p>
+                <div>
+                  <p className="text-sm text-gray-400 mb-2">{t('referral.shareLink') || 'Your share link'}</p>
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-slate-900 border border-purple-500/30 rounded-lg px-3 py-2 text-xs text-purple-200 flex-1 truncate">
+                      {referralLink || '...'}
+                    </div>
+                    <Button onClick={copyReferralLink} variant="outline" size="sm" className="border-purple-500/30 text-purple-400 hover:bg-purple-500/20" disabled={!referralLink}>
+                      {linkCopied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{t('referral.linkHint') || 'Link auto-applies your code & current language.'}</p>
+                </div>
               </div>
               <div>
                 <p className="text-sm text-gray-400 mb-2">{t('referral.progress')}</p>
