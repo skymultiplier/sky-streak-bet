@@ -602,7 +602,7 @@ export const GameInterface = () => {
                     type="number"
                     value={betAmount}
                     onChange={(e) => setBetAmount(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-green-500/10 border-2 border-green-500/60 text-green-300 font-bold text-lg focus-visible:ring-green-400"
                     placeholder={t('game.minBet')}
                     min="10"
                     step="0.01"
