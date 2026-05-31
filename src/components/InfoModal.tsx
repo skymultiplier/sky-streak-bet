@@ -43,23 +43,23 @@ export const InfoModal = ({ isOpen, onClose, type }: InfoModalProps) => {
           icon: <Plane className="h-6 w-6 text-cyan-400" />,
           content: (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-cyan-400">🚀 Sky Multiplier Game Guide</h3>
+              <h3 className="text-lg font-semibold text-cyan-400">🚀 SkyMultiplier — Game Guide</h3>
               <div className="space-y-3 text-gray-300">
-                <p><strong>1. Place Your Bet:</strong> Choose your bet amount (minimum $10) and click "Take Off"</p>
-                <p><strong>2. Watch the Flight:</strong> Your plane will fly across the sky, hitting multiplier boxes along the way</p>
-                <p><strong>3. Multiplier Magic:</strong> Each box contains a multiplier that affects your winnings:
-                  <br />• 🟢 Green boxes = Small to decent profits
-                  <br />• 🟡 Yellow boxes = Big wins 
-                  <br />• 🔴 Red boxes = Losses or minimal gains
+                <p><strong>1. Set Your Bet:</strong> Choose your bet amount (minimum $10 USDT). Use the quick bet buttons (highlighted in green when selected) or type a custom value.</p>
+                <p><strong>2. Place the Bet:</strong> Click <em>Place Bet</em> to launch your plane. Your bet is deducted from your balance immediately.</p>
+                <p><strong>3. Watch the Flight:</strong> Your plane flies across the sky and reveals 6 multiplier boxes one by one. Each box multiplies your current winnings:
+                  <br />• 🟢 Green boxes (1.5x – 4x) — solid wins
+                  <br />• 🟡 Yellow boxes (4x+) — big multipliers
+                  <br />• 🔴 Red boxes (under 1x) — reduces winnings
                 </p>
-                <p><strong>4. Cash Out:</strong> Click "Cash Out" while flying to secure your current winnings, or let it fly to the end for maximum multiplier</p>
-                <p><strong>5. Collect:</strong> After landing or cashing out, collect your winnings and play again!</p>
+                <p><strong>4. Cash Out Anytime:</strong> Tap <em>Cash Out</em> while flying to lock in your current winnings. Wait longer for a bigger multiplier — but the next box could shrink it.</p>
+                <p><strong>5. Collect:</strong> When the flight ends (or you cash out), click <em>Collect Winnings</em> to credit your balance.</p>
                 <div className="bg-slate-700/50 p-3 rounded-lg mt-4">
                   <p className="text-sm text-yellow-300"><strong>💡 Pro Tips:</strong></p>
                   <ul className="text-sm text-gray-400 mt-1 space-y-1">
-                    <li>• Loss streaks may improve your experience</li>
-                    <li>• Demo mode is perfect for learning</li>
-                    <li>• Practice with different bet amounts</li>
+                    <li>• Start in Demo mode to learn the rhythm risk-free</li>
+                    <li>• Cashing out early protects winnings from late red boxes</li>
+                    <li>• Every flight is provably fair and independently verifiable</li>
                   </ul>
                 </div>
               </div>

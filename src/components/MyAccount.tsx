@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Wallet, ArrowUpRight, ArrowDownLeft, DollarSign, CreditCard, Banknote, Clock, TrendingUp, TrendingDown, LogOut, Gift, Copy, Check, Activity, Trophy } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, DollarSign, CreditCard, Banknote, Clock, TrendingUp, TrendingDown, LogOut, Gift, Copy, Check, Activity, Trophy, Share2 } from "lucide-react";
 import { EnhancedPaymentModal } from "./EnhancedPaymentModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Progress } from "@/components/ui/progress";
+import { useSearchParams } from "react-router-dom";
 
 interface Transaction {
   id: string;
@@ -20,7 +21,7 @@ interface Transaction {
 
 export const MyAccount = () => {
   const { user, loading, signOut, balance, username } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentType, setPaymentType] = useState<'deposit' | 'withdraw'>('deposit');
   const [amount, setAmount] = useState('');
@@ -28,6 +29,9 @@ export const MyAccount = () => {
   const [referralCode, setReferralCode] = useState('');
   const [qualifiedReferrals, setQualifiedReferrals] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [searchParams] = useSearchParams();
+  const referralRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState({
     totalDeposits: 0,
     totalWithdrawals: 0,
@@ -44,6 +48,13 @@ export const MyAccount = () => {
       fetchStats();
     }
   }, [user]);
+
+  // Scroll to referral when ?tab=referral
+  useEffect(() => {
+    if (searchParams.get('tab') === 'referral' && referralRef.current) {
+      setTimeout(() => referralRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    }
+  }, [searchParams, referralCode]);
 
   const fetchTransactions = async () => {
     if (!user) return;
@@ -97,16 +108,26 @@ export const MyAccount = () => {
       .from('referrals')
       .select('id')
       .eq('referrer_id', user.id)
-      .eq('deposit_made', true)
-      .eq('reward_paid', false);
+      .eq('deposit_made', true);
     if (referralData) setQualifiedReferrals(referralData.length);
   };
+
+  const referralLink = referralCode
+    ? `${window.location.origin}/${language}?ref=${referralCode}`
+    : '';
 
   const copyReferralCode = () => {
     navigator.clipboard.writeText(referralCode);
     setCopied(true);
     toast({ title: t('referral.copied') });
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyReferralLink = () => {
+    navigator.clipboard.writeText(referralLink);
+    setLinkCopied(true);
+    toast({ title: t('referral.linkCopied') || 'Referral link copied!' });
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   const handleDeposit = () => { setPaymentType('deposit'); setShowPaymentModal(true); };
@@ -180,18 +201,75 @@ export const MyAccount = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <div className="text-3xl md:text-4xl font-bold text-cyan-400">${balance.toFixed(2)}</div>
-                  <div className="text-xs text-green-400 font-semibold">{t('account.realMoney')} • USDT</div>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleSignOut} className="border-red-500/30 text-red-400 hover:bg-red-500/20">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  {t('account.signOut')}
-                </Button>
+              <div className="text-right">
+                <div className="text-3xl md:text-4xl font-bold text-cyan-400">${balance.toFixed(2)}</div>
+                <div className="text-xs text-green-400 font-semibold">{t('account.realMoney')} • USDT</div>
               </div>
             </div>
           </Card>
+
+          {/* Deposit / Withdraw — now ABOVE stats */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card className="bg-slate-800 border-green-500/30 p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center">
+                  <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center mr-3">
+                    <ArrowDownLeft className="h-5 w-5 text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{t('account.depositFunds')}</h3>
+                    <p className="text-xs text-gray-400">{t('account.minDeposit') || 'Minimum $100 USDT'}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Button onClick={handleDeposit} className="w-full bg-green-600 hover:bg-green-700 text-white py-6 text-base font-semibold">
+                  <Wallet className="h-5 w-5 mr-2" />
+                  {t('account.depositCrypto')}
+                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" className="border-slate-700 text-gray-500 cursor-not-allowed text-xs" disabled>
+                    <CreditCard className="h-4 w-4 mr-1" />
+                    {t('account.creditCard')}
+                  </Button>
+                  <Button variant="outline" className="border-slate-700 text-gray-500 cursor-not-allowed text-xs" disabled>
+                    <Banknote className="h-4 w-4 mr-1" />
+                    {t('account.bankTransfer')}
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 text-center">{t('account.cryptoOnlyHint') || 'Card & bank transfer not available in your region.'}</p>
+              </div>
+            </Card>
+
+            <Card className="bg-slate-800 border-cyan-500/30 p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center">
+                  <div className="h-10 w-10 rounded-full bg-cyan-500/20 flex items-center justify-center mr-3">
+                    <ArrowUpRight className="h-5 w-5 text-cyan-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{t('account.withdrawFunds')}</h3>
+                    <p className="text-xs text-gray-400">{t('account.minWithdraw')}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Button onClick={handleWithdraw} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-base font-semibold disabled:opacity-50" disabled={balance <= 0}>
+                  <Wallet className="h-5 w-5 mr-2" />
+                  {t('account.withdrawCrypto')}
+                </Button>
+                <Button variant="outline" className="w-full border-slate-700 text-gray-500 cursor-not-allowed text-xs" disabled>
+                  <Banknote className="h-4 w-4 mr-1" />
+                  {t('account.bankTransfer')}
+                </Button>
+                <p className="text-xs text-gray-500 text-center">
+                  {balance <= 0
+                    ? (t('account.depositFirst') || 'Deposit first to enable withdrawals')
+                    : `${t('account.available') || 'Available'}: $${balance.toFixed(2)} USDT`}
+                </p>
+              </div>
+            </Card>
+          </div>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -231,66 +309,42 @@ export const MyAccount = () => {
             </Card>
           </div>
 
-          {/* Deposit / Withdraw */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="bg-slate-800 border-cyan-500/20 p-6">
-              <div className="flex items-center mb-5">
-                <ArrowDownLeft className="h-6 w-6 text-green-400 mr-3" />
-                <h3 className="text-xl font-bold text-white">{t('account.depositFunds')}</h3>
-              </div>
-              <div className="space-y-3">
-                <Button onClick={handleDeposit} className="w-full bg-green-600 hover:bg-green-700 text-white py-3">
-                  <Wallet className="h-5 w-5 mr-2" />
-                  {t('account.depositCrypto')}
-                </Button>
-                <Button variant="outline" className="w-full border-slate-600 text-gray-500 py-3 cursor-not-allowed" disabled>
-                  <CreditCard className="h-5 w-5 mr-2" />
-                  {t('account.creditCard')} — N/A
-                </Button>
-                <Button variant="outline" className="w-full border-slate-600 text-gray-500 py-3 cursor-not-allowed" disabled>
-                  <Banknote className="h-5 w-5 mr-2" />
-                  {t('account.bankTransfer')} — N/A
-                </Button>
-              </div>
-            </Card>
-
-            <Card className="bg-slate-800 border-cyan-500/20 p-6">
-              <div className="flex items-center mb-5">
-                <ArrowUpRight className="h-6 w-6 text-cyan-400 mr-3" />
-                <h3 className="text-xl font-bold text-white">{t('account.withdrawFunds')}</h3>
-              </div>
-              <div className="space-y-3">
-                <Button onClick={handleWithdraw} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-3" disabled={balance <= 0}>
-                  <Wallet className="h-5 w-5 mr-2" />
-                  {t('account.withdrawCrypto')}
-                </Button>
-                <Button variant="outline" className="w-full border-slate-600 text-gray-500 py-3 cursor-not-allowed" disabled>
-                  <Banknote className="h-5 w-5 mr-2" />
-                  {t('account.bankTransfer')} — N/A
-                </Button>
-                <p className="text-sm text-gray-400 text-center pt-2">{t('account.minWithdraw')}</p>
-              </div>
-            </Card>
-          </div>
-
           {/* Referral */}
-          <Card className="bg-slate-800 border-purple-500/30 p-6">
-            <div className="flex items-center mb-4">
-              <Gift className="h-6 w-6 text-purple-400 mr-3" />
-              <h3 className="text-xl font-bold text-white">{t('referral.title')}</h3>
+          <Card ref={referralRef} className="bg-slate-800 border-purple-500/30 p-6 scroll-mt-20">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <Gift className="h-6 w-6 text-purple-400 mr-3" />
+                <h3 className="text-xl font-bold text-white">{t('referral.title')}</h3>
+              </div>
+              <span className="text-xs bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full font-semibold">
+                {qualifiedReferrals} {t('referral.qualifiedTotal') || 'qualified'}
+              </span>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm text-gray-400 mb-3">{t('referral.yourCode')}</p>
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="bg-slate-900 border border-purple-500/30 rounded-lg px-4 py-3 font-mono text-lg text-purple-300 tracking-widest flex-1 text-center">
-                    {referralCode || '...'}
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-400 mb-2">{t('referral.yourCode')}</p>
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-slate-900 border border-purple-500/30 rounded-lg px-4 py-3 font-mono text-lg text-purple-300 tracking-widest flex-1 text-center">
+                      {referralCode || '...'}
+                    </div>
+                    <Button onClick={copyReferralCode} variant="outline" size="sm" className="border-purple-500/30 text-purple-400 hover:bg-purple-500/20">
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
                   </div>
-                  <Button onClick={copyReferralCode} variant="outline" size="sm" className="border-purple-500/30 text-purple-400 hover:bg-purple-500/20">
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
                 </div>
-                <p className="text-xs text-gray-500">{t('referral.share')}</p>
+                <div>
+                  <p className="text-sm text-gray-400 mb-2">{t('referral.shareLink') || 'Your share link'}</p>
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-slate-900 border border-purple-500/30 rounded-lg px-3 py-2 text-xs text-purple-200 flex-1 truncate">
+                      {referralLink || '...'}
+                    </div>
+                    <Button onClick={copyReferralLink} variant="outline" size="sm" className="border-purple-500/30 text-purple-400 hover:bg-purple-500/20" disabled={!referralLink}>
+                      {linkCopied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{t('referral.linkHint') || 'Link auto-applies your code & current language.'}</p>
+                </div>
               </div>
               <div>
                 <p className="text-sm text-gray-400 mb-2">{t('referral.progress')}</p>

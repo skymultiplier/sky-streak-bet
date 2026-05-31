@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plane, History, Trophy, Menu, X, User } from "lucide-react";
+import { Plane, History, Trophy, Menu, X, LayoutDashboard, Gift, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
 import { useAuth } from "@/hooks/useAuth";
 import { LanguageSelector } from "./LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "@/hooks/use-toast";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const isMobile = useIsMobile();
-  const { user, username } = useAuth();
+  const { user, signOut } = useAuth();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const lp = `/${language}`;
@@ -22,64 +23,88 @@ export const Navigation = () => {
     navigate(`${lp}/game`);
   };
 
+  const handleSignOut = async () => {
+    const ok = await signOut();
+    if (ok) {
+      toast({ title: t('account.signedOut') || 'Signed out' });
+      navigate(lp || '/');
+    }
+  };
+
+  const NavLinks = ({ onNavigate }: { onNavigate?: () => void }) => (
+    <>
+      <Link to={`${lp}/leaderboard`} onClick={onNavigate}>
+        <Button variant="ghost" className="text-gray-300 hover:text-cyan-400 w-full justify-start md:w-auto">
+          <Trophy className="h-4 w-4 mr-2" />
+          {t('nav.leaderboard')}
+        </Button>
+      </Link>
+      <Link to={`${lp}/history`} onClick={onNavigate}>
+        <Button variant="ghost" className="text-gray-300 hover:text-cyan-400 w-full justify-start md:w-auto">
+          <History className="h-4 w-4 mr-2" />
+          {t('nav.history')}
+        </Button>
+      </Link>
+      {user && (
+        <>
+          <Link to={`${lp}/game`} onClick={onNavigate}>
+            <Button variant="ghost" className="text-gray-300 hover:text-cyan-400 w-full justify-start md:w-auto">
+              <Plane className="h-4 w-4 mr-2" />
+              {t('nav.gameLounge')}
+            </Button>
+          </Link>
+          <Link to={`${lp}/my-account?tab=referral`} onClick={onNavigate}>
+            <Button variant="ghost" className="text-purple-300 hover:text-purple-200 w-full justify-start md:w-auto">
+              <Gift className="h-4 w-4 mr-2" />
+              {t('nav.referrals') || 'Referrals'}
+            </Button>
+          </Link>
+        </>
+      )}
+    </>
+  );
+
   return (
     <nav className="bg-slate-900/95 backdrop-blur-sm border-b border-cyan-500/20 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link to={lp || '/'} className="flex items-center space-x-2">
             <div className="relative">
               <Plane className="h-8 w-8 text-cyan-400 transform rotate-45" />
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full animate-pulse" />
             </div>
-            <span className="text-2xl font-bold text-cyan-400">
-              SkyMultiplier
-            </span>
+            <span className="text-2xl font-bold text-cyan-400">SkyMultiplier</span>
           </Link>
 
-          {/* Desktop Navigation */}
           {!isMobile && (
-            <div className="hidden md:flex items-center space-x-6">
-              <Link to={`${lp}/leaderboard`}>
-                <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
-                  <Trophy className="h-4 w-4 mr-2" />
-                  {t('nav.leaderboard')}
-                </Button>
-              </Link>
-              <Link to={`${lp}/history`}>
-                <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
-                  <History className="h-4 w-4 mr-2" />
-                  {t('nav.history')}
-                </Button>
-              </Link>
-              {user && (
-                <Link to={`${lp}/game`}>
-                  <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
-                    <Plane className="h-4 w-4 mr-2" />
-                    {t('nav.gameLounge')}
-                  </Button>
-                </Link>
-              )}
+            <div className="hidden md:flex items-center space-x-3">
+              <NavLinks />
               <LanguageSelector />
               {user ? (
-                <Link to={`${lp}/my-account`}>
-                  <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
-                    <User className="h-4 w-4 mr-2" />
-                    {username || t('nav.account')}
+                <>
+                  <Link to={`${lp}/my-account`}>
+                    <Button className="bg-cyan-600 hover:bg-cyan-700 text-white">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      {t('nav.dashboard') || 'Account Dashboard'}
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    onClick={handleSignOut}
+                    className="border-red-500/40 text-red-400 hover:bg-red-500/10"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {t('account.signOut') || 'Logout'}
                   </Button>
-                </Link>
+                </>
               ) : (
-                <Button
-                  className="bg-cyan-600 hover:bg-cyan-700"
-                  onClick={() => setShowAuthModal(true)}
-                >
+                <Button className="bg-cyan-600 hover:bg-cyan-700" onClick={() => setShowAuthModal(true)}>
                   {t('nav.login')}
                 </Button>
               )}
             </div>
           )}
 
-          {/* Mobile Menu Button */}
           {isMobile && (
             <div className="flex items-center space-x-2">
               <LanguageSelector />
@@ -95,49 +120,35 @@ export const Navigation = () => {
           )}
         </div>
 
-        {/* Mobile Menu */}
         {isMobile && isMenuOpen && (
           <div className="md:hidden border-t border-cyan-500/20 py-4">
             <div className="flex flex-col space-y-2">
-              <Link to={`${lp}/leaderboard`}>
-                <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">
-                  <Trophy className="h-4 w-4 mr-2" />
-                  {t('nav.leaderboard')}
-                </Button>
-              </Link>
-              <Link to={`${lp}/history`}>
-                <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">
-                  <History className="h-4 w-4 mr-2" />
-                  {t('nav.history')}
-                </Button>
-              </Link>
-              {user && (
-                <Link to={`${lp}/game`}>
-                  <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">
-                    <Plane className="h-4 w-4 mr-2" />
-                    {t('nav.gameLounge')}
-                  </Button>
-                </Link>
-              )}
+              <NavLinks onNavigate={() => setIsMenuOpen(false)} />
               {user ? (
-                <Link to={`${lp}/my-account`}>
-                  <Button variant="ghost" className="justify-start text-gray-300 hover:text-cyan-400 w-full">
-                    <User className="h-4 w-4 mr-2" />
-                    {username || t('nav.account')}
+                <>
+                  <Link to={`${lp}/my-account`} onClick={() => setIsMenuOpen(false)}>
+                    <Button className="bg-cyan-600 hover:bg-cyan-700 text-white w-full justify-start">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      {t('nav.dashboard') || 'Account Dashboard'}
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    onClick={() => { setIsMenuOpen(false); handleSignOut(); }}
+                    className="border-red-500/40 text-red-400 hover:bg-red-500/10 w-full justify-start"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {t('account.signOut') || 'Logout'}
                   </Button>
-                </Link>
+                </>
               ) : (
-                <Button
-                  className="bg-cyan-600 hover:bg-cyan-700 mt-2"
-                  onClick={() => setShowAuthModal(true)}
-                >
+                <Button className="bg-cyan-600 hover:bg-cyan-700 mt-2" onClick={() => { setIsMenuOpen(false); setShowAuthModal(true); }}>
                   {t('nav.login')}
                 </Button>
               )}
             </div>
           </div>
         )}
-
       </div>
 
       <AuthModal

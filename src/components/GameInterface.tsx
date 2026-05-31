@@ -403,60 +403,53 @@ export const GameInterface = () => {
 
   return (
     <div className="min-h-screen bg-slate-900">
-      {/* Demo/Real Mode Toggle with Balance and Username - Top Right */}
-      <div className="absolute top-4 right-4 z-50">
-        <div className="flex items-center space-x-4 bg-slate-800/50 backdrop-blur-sm border border-cyan-500/20 rounded-lg px-4 py-2">
-          {/* Username Display */}
-          {(username || isDemoMode) && (
-            <Link to="/my-account" className="flex items-center space-x-2 hover:bg-slate-700/50 rounded-lg px-2 py-1 transition-colors">
-              <User className="h-4 w-4 text-cyan-400" />
-              <span className="text-sm font-medium text-white">
-                {isDemoMode ? t('game.demoUser') : (username || t('game.user'))}
-              </span>
-            </Link>
-          )}
-          
-          {/* Balance Display */}
-          <div className="text-right">
-            <div className="text-lg font-bold text-cyan-400">
-              ${currentBalance.toFixed(2)} USDT
+      <div className="container mx-auto px-4 py-6">
+        {/* Game Lounge Header — Balance + Mode Switch (inline) */}
+        <Card className="bg-slate-800 border-cyan-500/20 p-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="h-12 w-12 rounded-full bg-cyan-600 flex items-center justify-center">
+                <User className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <div className="text-sm text-gray-400">{t('game.welcome') || 'Welcome'}</div>
+                <div className="text-base font-semibold text-white">
+                  {isDemoMode ? t('game.demoUser') : (username || t('game.user'))}
+                </div>
+              </div>
             </div>
-            <div className={`text-xs font-medium ${
-              isDemoMode ? 'text-yellow-400' : 'text-green-400'
-            }`}>
-              {isDemoMode ? t('game.demo') : t('game.real')}
-            </div>
-            {isDemoMode && currentBalance < 50 && (
-              <Button
-                onClick={replenishDemoBalance}
-                size="sm"
-                variant="outline"
-                className="mt-1 text-xs px-2 py-1 h-6"
-              >
-                {t('game.replenish')}
-              </Button>
-            )}
-          </div>
-          
-          {/* Mode Toggle */}
-          <div className="flex items-center space-x-2">
-            <span className={`text-sm font-medium ${isDemoMode ? 'text-yellow-400' : 'text-gray-400'}`}>
-              {t('game.demo')}
-            </span>
-            <Switch
-              checked={!isDemoMode}
-              onCheckedChange={toggleMode}
-              className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-yellow-500"
-            />
-            <span className={`text-sm font-medium ${!isDemoMode ? 'text-green-400' : 'text-gray-400'}`}>
-              {t('game.real')}
-            </span>
-          </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="text-right">
+                <div className="text-xs text-gray-400">{t('game.currentBalance')}</div>
+                <div className="text-2xl font-bold text-cyan-400">
+                  ${currentBalance.toFixed(2)} <span className="text-xs text-gray-400">USDT</span>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 bg-slate-900 px-3 py-2 rounded-lg border border-slate-700">
+                <span className={`text-xs font-semibold ${isDemoMode ? 'text-yellow-400' : 'text-gray-500'}`}>
+                  {t('game.demo')}
+                </span>
+                <Switch
+                  checked={!isDemoMode}
+                  onCheckedChange={toggleMode}
+                  className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-yellow-500"
+                />
+                <span className={`text-xs font-semibold ${!isDemoMode ? 'text-green-400' : 'text-gray-500'}`}>
+                  {t('game.real')}
+                </span>
+              </div>
+
+              {isDemoMode && currentBalance < 50 && (
+                <Button onClick={replenishDemoBalance} size="sm" variant="outline" className="text-xs">
+                  {t('game.replenish')}
+                </Button>
+              )}
+            </div>
+          </div>
+        </Card>
+
         <div className="flex flex-col lg:flex-row gap-6">
           
           {/* Game Display - Left Side */}
@@ -609,7 +602,7 @@ export const GameInterface = () => {
                     type="number"
                     value={betAmount}
                     onChange={(e) => setBetAmount(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white"
+                    className="bg-green-500/10 border-2 border-green-500/60 text-green-300 font-bold text-lg focus-visible:ring-green-400"
                     placeholder={t('game.minBet')}
                     min="10"
                     step="0.01"
@@ -617,20 +610,27 @@ export const GameInterface = () => {
                   />
                 </div>
 
-                {/* Quick Bet Buttons */}
+                {/* Quick Bet Buttons — highlight selected */}
                 <div className="grid grid-cols-4 gap-2">
-                  {[10, 25, 50, 100].map((amount) => (
-                    <Button
-                      key={amount}
-                      variant="outline"
-                      size="sm"
-                      className="border-slate-600 text-gray-300 hover:bg-slate-700"
-                      onClick={() => setBetAmount(amount.toString())}
-                      disabled={gameStatus !== "waiting"}
-                    >
-                      ${amount}
-                    </Button>
-                  ))}
+                  {[10, 25, 50, 100].map((amount) => {
+                    const isSelected = parseFloat(betAmount) === amount;
+                    return (
+                      <Button
+                        key={amount}
+                        variant="outline"
+                        size="sm"
+                        className={
+                          isSelected
+                            ? "bg-green-500 border-green-400 text-white font-bold ring-2 ring-green-300 hover:bg-green-600"
+                            : "border-slate-600 text-gray-300 hover:bg-slate-700"
+                        }
+                        onClick={() => setBetAmount(amount.toString())}
+                        disabled={gameStatus !== "waiting"}
+                      >
+                        ${amount}
+                      </Button>
+                    );
+                  })}
                 </div>
 
                 {/* Max Bet Button */}
