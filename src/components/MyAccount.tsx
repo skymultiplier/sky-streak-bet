@@ -214,6 +214,69 @@ export const MyAccount = () => {
             </div>
           </Card>
 
+          {/* Deposit / Withdraw — now ABOVE stats */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card className="bg-slate-800 border-green-500/30 p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center">
+                  <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center mr-3">
+                    <ArrowDownLeft className="h-5 w-5 text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{t('account.depositFunds')}</h3>
+                    <p className="text-xs text-gray-400">{t('account.minDeposit') || 'Minimum $100 USDT'}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Button onClick={handleDeposit} className="w-full bg-green-600 hover:bg-green-700 text-white py-6 text-base font-semibold">
+                  <Wallet className="h-5 w-5 mr-2" />
+                  {t('account.depositCrypto')}
+                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" className="border-slate-700 text-gray-500 cursor-not-allowed text-xs" disabled>
+                    <CreditCard className="h-4 w-4 mr-1" />
+                    {t('account.creditCard')}
+                  </Button>
+                  <Button variant="outline" className="border-slate-700 text-gray-500 cursor-not-allowed text-xs" disabled>
+                    <Banknote className="h-4 w-4 mr-1" />
+                    {t('account.bankTransfer')}
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 text-center">{t('account.cryptoOnlyHint') || 'Card & bank transfer not available in your region.'}</p>
+              </div>
+            </Card>
+
+            <Card className="bg-slate-800 border-cyan-500/30 p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center">
+                  <div className="h-10 w-10 rounded-full bg-cyan-500/20 flex items-center justify-center mr-3">
+                    <ArrowUpRight className="h-5 w-5 text-cyan-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{t('account.withdrawFunds')}</h3>
+                    <p className="text-xs text-gray-400">{t('account.minWithdraw')}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Button onClick={handleWithdraw} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-6 text-base font-semibold disabled:opacity-50" disabled={balance <= 0}>
+                  <Wallet className="h-5 w-5 mr-2" />
+                  {t('account.withdrawCrypto')}
+                </Button>
+                <Button variant="outline" className="w-full border-slate-700 text-gray-500 cursor-not-allowed text-xs" disabled>
+                  <Banknote className="h-4 w-4 mr-1" />
+                  {t('account.bankTransfer')}
+                </Button>
+                <p className="text-xs text-gray-500 text-center">
+                  {balance <= 0
+                    ? (t('account.depositFirst') || 'Deposit first to enable withdrawals')
+                    : `${t('account.available') || 'Available'}: $${balance.toFixed(2)} USDT`}
+                </p>
+              </div>
+            </Card>
+          </div>
+
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="bg-slate-800 border-slate-700 p-4">
@@ -249,48 +312,6 @@ export const MyAccount = () => {
                 {netProfit >= 0 ? '+' : ''}${netProfit.toFixed(2)}
               </div>
               <div className="text-xs text-gray-400 mt-1">Net Profit</div>
-            </Card>
-          </div>
-
-          {/* Deposit / Withdraw */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="bg-slate-800 border-cyan-500/20 p-6">
-              <div className="flex items-center mb-5">
-                <ArrowDownLeft className="h-6 w-6 text-green-400 mr-3" />
-                <h3 className="text-xl font-bold text-white">{t('account.depositFunds')}</h3>
-              </div>
-              <div className="space-y-3">
-                <Button onClick={handleDeposit} className="w-full bg-green-600 hover:bg-green-700 text-white py-3">
-                  <Wallet className="h-5 w-5 mr-2" />
-                  {t('account.depositCrypto')}
-                </Button>
-                <Button variant="outline" className="w-full border-slate-600 text-gray-500 py-3 cursor-not-allowed" disabled>
-                  <CreditCard className="h-5 w-5 mr-2" />
-                  {t('account.creditCard')} — N/A
-                </Button>
-                <Button variant="outline" className="w-full border-slate-600 text-gray-500 py-3 cursor-not-allowed" disabled>
-                  <Banknote className="h-5 w-5 mr-2" />
-                  {t('account.bankTransfer')} — N/A
-                </Button>
-              </div>
-            </Card>
-
-            <Card className="bg-slate-800 border-cyan-500/20 p-6">
-              <div className="flex items-center mb-5">
-                <ArrowUpRight className="h-6 w-6 text-cyan-400 mr-3" />
-                <h3 className="text-xl font-bold text-white">{t('account.withdrawFunds')}</h3>
-              </div>
-              <div className="space-y-3">
-                <Button onClick={handleWithdraw} className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-3" disabled={balance <= 0}>
-                  <Wallet className="h-5 w-5 mr-2" />
-                  {t('account.withdrawCrypto')}
-                </Button>
-                <Button variant="outline" className="w-full border-slate-600 text-gray-500 py-3 cursor-not-allowed" disabled>
-                  <Banknote className="h-5 w-5 mr-2" />
-                  {t('account.bankTransfer')} — N/A
-                </Button>
-                <p className="text-sm text-gray-400 text-center pt-2">{t('account.minWithdraw')}</p>
-              </div>
             </Card>
           </div>
 
