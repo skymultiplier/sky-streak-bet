@@ -24,6 +24,19 @@ export const AuthModal = ({ isOpen, onClose, onLogin, defaultToSignUp = false }:
   const [loading, setLoading] = useState(false);
   const { t } = useLanguage();
 
+  // Auto-fill referral code from ?ref=CODE URL param
+  useEffect(() => {
+    if (!isOpen) return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref');
+      if (ref && !referralCode) {
+        setReferralCode(ref.toUpperCase());
+        setIsLogin(false); // Open in sign-up mode if referral present
+      }
+    } catch {}
+  }, [isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
