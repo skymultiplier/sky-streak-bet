@@ -8,7 +8,7 @@ export const enTranslations: Record<string, string> = {
 
   // Hero Section
   'hero.badge': 'Next-Gen Crypto Gaming',
-  'hero.tagline': 'Navigate through multiplier zones, avoid the bombs, and cash out at the perfect moment. The ultimate aviation-themed crypto betting experience.',
+  'hero.tagline': 'Place your bet, launch the plane, and fly through 6 hidden multiplier boxes. Each box multiplies (or shrinks) your winnings — cash out mid-flight or collect at the end. Provably fair crypto gameplay.',
   'hero.startFlying': 'Start Flying Now',
   'hero.playDemo': 'Play Demo',
   'hero.totalWinnings': 'Total Winnings',
