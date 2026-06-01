@@ -365,7 +365,11 @@ export const AdminDashboard = () => {
                         <TableCell className="text-gray-400">{transaction.description || '-'}</TableCell>
                         <TableCell className="text-gray-400">{new Date(transaction.created_at).toLocaleString()}</TableCell>
                         <TableCell>
-                          <Badge className="bg-green-500/20 text-green-400">{transaction.status || 'Completed'}</Badge>
+                          <Badge className={`${
+                            transaction.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                            transaction.status === 'failed' ? 'bg-red-500/20 text-red-400' :
+                            'bg-green-500/20 text-green-400'
+                          }`}>{transaction.status || 'completed'}</Badge>
                         </TableCell>
                       </TableRow>
                     ))}

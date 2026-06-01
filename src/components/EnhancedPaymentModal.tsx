@@ -3,9 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Bitcoin, Copy, CheckCircle, Clock, CreditCard, Building2, ChevronDown, ChevronRight, Loader2, Shield, ArrowLeft, AlertCircle, Wallet, Coins } from "lucide-react";
+import { Bitcoin, Copy, CheckCircle, Clock, CreditCard, Building2, ChevronDown, ChevronRight, Loader2, Shield, ArrowLeft, AlertCircle, Wallet, Coins, HelpCircle, MessageSquare, Send } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface EnhancedPaymentModalProps {
   isOpen: boolean;
@@ -17,12 +21,17 @@ interface EnhancedPaymentModalProps {
 
 export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountChange }: EnhancedPaymentModalProps) => {
   const { t } = useLanguage();
-  const [step, setStep] = useState<'amount' | 'method-select' | 'crypto-select' | 'address-display' | 'withdraw-form' | 'processing'>('amount');
+  const { user } = useAuth();
+  const [step, setStep] = useState<'amount' | 'method-select' | 'crypto-select' | 'address-display' | 'withdraw-form' | 'processing' | 'awaiting-confirmation'>('amount');
   const [selectedCrypto, setSelectedCrypto] = useState<'usdt' | 'btc' | null>(null);
   const [countdown, setCountdown] = useState(600);
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
+  const [showHelp, setShowHelp] = useState(false);
+  const [helpMessage, setHelpMessage] = useState('');
+  const [submittingHelp, setSubmittingHelp] = useState(false);
+  const [submittingPayment, setSubmittingPayment] = useState(false);
 
   const addresses = {
     usdt: { tron: "TEWRV79s2P7ZzeAicmfVSGMAwhYHwETBsJ" },
@@ -76,6 +85,55 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
     setStep('processing');
     setIsProcessing(true);
     setTimeout(() => { setIsProcessing(false); onClose(); }, 3000);
+  };
+
+  const handlePaymentSent = async () => {
+    if (!user) {
+      toast({ title: 'Not signed in', description: 'Please sign in to record this deposit.', variant: 'destructive' });
+      onClose();
+      return;
+    }
+    setSubmittingPayment(true);
+    try {
+      const { error } = await supabase.from('transactions').insert({
+        user_id: user.id,
+        type: 'deposit',
+        amount: parseFloat(amount) || 0,
+        status: 'pending',
+        description: `Pending ${selectedCrypto?.toUpperCase()} deposit — awaiting blockchain confirmation`,
+      });
+      if (error) throw error;
+      toast({ title: 'Deposit submitted', description: 'We are waiting for blockchain confirmation.' });
+      setStep('awaiting-confirmation');
+    } catch (e: any) {
+      toast({ title: 'Could not record deposit', description: e.message, variant: 'destructive' });
+    } finally {
+      setSubmittingPayment(false);
+    }
+  };
+
+  const submitHelpRequest = async () => {
+    if (!user) {
+      toast({ title: 'Not signed in', description: 'Please sign in to contact support.', variant: 'destructive' });
+      return;
+    }
+    setSubmittingHelp(true);
+    try {
+      const { error } = await supabase.from('support_tickets').insert({
+        user_id: user.id,
+        subject: `Help with ${type} — $${amount} ${selectedCrypto?.toUpperCase() || ''}`,
+        message: helpMessage.trim(),
+        status: 'open',
+      });
+      if (error) throw error;
+      toast({ title: 'Message sent', description: 'Our support team will get back to you shortly.' });
+      setHelpMessage('');
+      setShowHelp(false);
+    } catch (e: any) {
+      toast({ title: 'Could not send message', description: e.message, variant: 'destructive' });
+    } finally {
+      setSubmittingHelp(false);
+    }
   };
 
   const handleBack = () => {
@@ -280,12 +338,74 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
             </div>
           </div>
         </Card>
-        <Button onClick={onClose} className="w-full bg-cyan-600 hover:bg-cyan-700">
-          {t('payment.sentPayment')}
+        <Button
+          onClick={handlePaymentSent}
+          disabled={submittingPayment}
+          className="w-full bg-cyan-600 hover:bg-cyan-700"
+        >
+          {submittingPayment ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+          I've sent the payment
         </Button>
+
+        {/* Help with deposit */}
+        <Card className="bg-slate-700/40 border-purple-500/30 p-4">
+          {!showHelp ? (
+            <Button variant="ghost" onClick={() => setShowHelp(true)} className="w-full text-purple-300 hover:bg-purple-500/10 justify-start">
+              <HelpCircle className="h-4 w-4 mr-2" />
+              Need help making this deposit? Chat with support
+            </Button>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2 text-purple-300">
+                <MessageSquare className="h-4 w-4" />
+                <span className="text-sm font-semibold">Tell us what you need help with</span>
+              </div>
+              <Textarea
+                value={helpMessage}
+                onChange={(e) => setHelpMessage(e.target.value)}
+                placeholder="e.g. I sent BTC but the address looks different, can you confirm?"
+                rows={3}
+                className="bg-slate-800 border-slate-600 text-white text-sm"
+              />
+              <div className="flex gap-2">
+                <Button onClick={() => setShowHelp(false)} variant="outline" size="sm" className="flex-1">Cancel</Button>
+                <Button onClick={submitHelpRequest} disabled={!helpMessage.trim() || submittingHelp} size="sm" className="flex-1 bg-purple-600 hover:bg-purple-700">
+                  {submittingHelp ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1" />Send</>}
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
       </div>
     );
   };
+
+  const renderAwaitingConfirmationStep = () => (
+    <div className="space-y-5 py-4">
+      <div className="text-center">
+        <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-full bg-yellow-500/10 mb-4">
+          <Loader2 className="h-12 w-12 text-yellow-400 animate-spin" />
+          <Clock className="h-6 w-6 text-yellow-300 absolute" />
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">Waiting for payment confirmation</h3>
+        <p className="text-gray-400 text-sm px-4">
+          Your deposit of <span className="font-bold text-cyan-400">${amount} USDT</span> is being verified on the blockchain.
+          This usually takes 5–30 minutes depending on network congestion.
+        </p>
+      </div>
+      <Card className="bg-slate-700/40 border-yellow-500/20 p-4">
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between"><span className="text-gray-400">Status</span><span className="text-yellow-400 font-semibold">Pending</span></div>
+          <div className="flex justify-between"><span className="text-gray-400">Amount</span><span className="text-white">${amount} USDT</span></div>
+          <div className="flex justify-between"><span className="text-gray-400">Method</span><span className="text-white">{selectedCrypto?.toUpperCase()}</span></div>
+        </div>
+      </Card>
+      <p className="text-xs text-gray-500 text-center">
+        You can safely close this window — this transaction is now visible as <span className="text-yellow-400">Pending</span> in your transaction history.
+      </p>
+      <Button onClick={onClose} className="w-full bg-slate-700 hover:bg-slate-600">Close</Button>
+    </div>
+  );
 
   const renderWithdrawFormStep = () => {
     const cryptoName = selectedCrypto === 'btc' ? t('payment.btcName') : t('payment.usdtName');
@@ -356,6 +476,7 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
       case 'address-display': return t('payment.depositAddress');
       case 'withdraw-form': return t('payment.withdrawDetails');
       case 'processing': return t('payment.processing');
+      case 'awaiting-confirmation': return 'Payment Pending';
       default: return type === 'deposit' ? t('payment.deposit') : t('payment.withdraw');
     }
   };
@@ -373,6 +494,7 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
           {step === 'address-display' && renderAddressDisplayStep()}
           {step === 'withdraw-form' && renderWithdrawFormStep()}
           {step === 'processing' && renderProcessingStep()}
+          {step === 'awaiting-confirmation' && renderAwaitingConfirmationStep()}
         </div>
       </DialogContent>
     </Dialog>
