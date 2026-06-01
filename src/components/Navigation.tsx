@@ -83,7 +83,7 @@ export const Navigation = () => {
               {user ? (
                 <>
                   <Link to={`${lp}/my-account`}>
-                    <Button className="bg-cyan-600 hover:bg-cyan-700 text-white">
+                    <Button variant="ghost" className="text-gray-300 hover:text-cyan-400">
                       <LayoutDashboard className="h-4 w-4 mr-2" />
                       {t('nav.dashboard') || 'Account Dashboard'}
                     </Button>
