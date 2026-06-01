@@ -8,7 +8,7 @@ export const enTranslations: Record<string, string> = {
 
   // Hero Section
   'hero.badge': 'Next-Gen Crypto Gaming',
-  'hero.tagline': 'Navigate through multiplier zones, avoid the bombs, and cash out at the perfect moment. The ultimate aviation-themed crypto betting experience.',
+  'hero.tagline': 'Place your bet, launch the plane, and fly through 6 hidden multiplier boxes. Each box multiplies (or shrinks) your winnings — cash out mid-flight or collect at the end. Provably fair crypto gameplay.',
   'hero.startFlying': 'Start Flying Now',
   'hero.playDemo': 'Play Demo',
   'hero.totalWinnings': 'Total Winnings',
@@ -16,12 +16,12 @@ export const enTranslations: Record<string, string> = {
   'hero.uptime': 'Uptime',
 
   // Features
-  'features.dynamicMultipliers': 'Dynamic Multipliers',
-  'features.dynamicMultipliersDesc': 'Navigate through randomized multiplier zones ranging from 1.1x to 100x. Each flight is unique and unpredictable.',
-  'features.provablyFair': 'Provably Fair',
-  'features.provablyFairDesc': 'Transparent, blockchain-verified randomness ensures every game is fair. Verify results with cryptographic proof.',
-  'features.instantPayouts': 'Instant Payouts',
-  'features.instantPayoutsDesc': 'Lightning-fast crypto withdrawals. Cash out your winnings instantly to your wallet with minimal fees.',
+ 'features.dynamicMultipliers': '6 Hidden Multiplier Boxes',
+ 'features.dynamicMultipliersDesc': 'Every flight reveals 6 random boxes. Each one multiplies your stake — some boost it (1.1x–3x+), most shrink it (0.2x–0.9x). The house edge is real, so play smart.',
+ 'features.provablyFair': 'Provably Fair',
+ 'features.provablyFairDesc': 'Outcomes are generated transparently and verifiable on-chain. No hidden tricks — every box is randomized fairly.',
+ 'features.instantPayouts': 'Cash Out Anytime',
+ 'features.instantPayoutsDesc': 'Tap Cash Out mid-flight to lock in your current winnings before the next box hits, or let the plane finish all 6 boxes. Withdraw to crypto instantly.',
   'features.experienceThrill': 'Experience the Thrill',
   'features.liveGameDemo': 'Live Game Demo',
   'features.clickToBegin': 'Click "Start Flying Now" to begin',

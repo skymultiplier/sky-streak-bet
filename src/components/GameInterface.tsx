@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Plane, TrendingUp, Bomb, DollarSign, Waves, Mountain, Gift, User, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Plane, TrendingUp, TrendingDown, Bomb, DollarSign, Waves, Mountain, Gift, User, Sparkles, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
 import { useSoundEffects } from "../hooks/useSoundEffects";
@@ -11,6 +12,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+interface RecentBet {
+  id: string | number;
+  amount: number;
+  payout: number;
+  multiplier: number;
+  status: 'won' | 'lost';
+  created_at: string;
+}
 
 interface MultiplierBox {
   id: number;
@@ -32,19 +42,61 @@ export const GameInterface = () => {
   const [lossStreak, setLossStreak] = useState(0);
   const [showWinningEffect, setShowWinningEffect] = useState(false);
   const [currentBetId, setCurrentBetId] = useState<string | null>(null);
+  const [showCollectModal, setShowCollectModal] = useState(false);
+  const [recentBets, setRecentBets] = useState<RecentBet[]>([]);
 
   const { playBetSound, playWinSound, startBackgroundMusic, stopBackgroundMusic } = useSoundEffects();
   const { user, userProfile, refreshProfile, balance, username, isAuthenticated } = useAuth();
   const { t } = useLanguage();
 
   useEffect(() => {
-    // Start background music when component mounts
     startBackgroundMusic();
-
-    return () => {
-      stopBackgroundMusic();
-    };
+    return () => { stopBackgroundMusic(); };
   }, []);
+
+  // Auto-show the collect modal when round ends
+  useEffect(() => {
+    if (gameStatus === "collect" || gameStatus === "crashed") {
+      setShowCollectModal(true);
+    }
+  }, [gameStatus]);
+
+  // Load recent bets
+  useEffect(() => {
+    loadRecentBets();
+  }, [user, isDemoMode]);
+
+  const loadRecentBets = async () => {
+    if (isDemoMode) {
+      const demoHistory = JSON.parse(localStorage.getItem('demoBetHistory') || '[]');
+      setRecentBets(demoHistory.slice(0, 5).map((b: any) => ({
+        id: b.id,
+        amount: b.bet_amount,
+        payout: b.payout,
+        multiplier: parseFloat(b.multiplier),
+        status: b.status,
+        created_at: b.created_at,
+      })));
+      return;
+    }
+    if (!user) { setRecentBets([]); return; }
+    const { data } = await supabase
+      .from('bets')
+      .select('id, amount, profit, cashout_multiplier, status, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    if (data) {
+      setRecentBets(data.map((b: any) => ({
+        id: b.id,
+        amount: Number(b.amount),
+        payout: b.status === 'won' ? Number(b.amount) + Number(b.profit || 0) : 0,
+        multiplier: Number(b.cashout_multiplier || 0),
+        status: b.status === 'won' ? 'won' : 'lost',
+        created_at: b.created_at,
+      })));
+    }
+  };
 
   // Generate random multiplier boxes — losing odds dominate, smaller wins
   const generateMultiplierBoxes = () => {
@@ -243,8 +295,10 @@ export const GameInterface = () => {
   };
 
   const collectWinnings = async () => {
+    if (gameStatus !== "collect" && gameStatus !== "crashed") return;
     const finalMultiplier = currentMultiplier;
     const isWin = currentWinnings > parseFloat(betAmount);
+    
     
     if (isDemoMode) {
       // Demo mode logic
@@ -309,9 +363,11 @@ export const GameInterface = () => {
       });
     }
     
+    setShowCollectModal(false);
     setGameStatus("waiting");
     setPlanePosition(0);
     setCurrentBetId(null);
+    await loadRecentBets();
   };
 
   const collectDemoWinnings = (isWin: boolean, finalMultiplier: number) => {
@@ -350,8 +406,10 @@ export const GameInterface = () => {
     demoHistory.unshift(newBet);
     localStorage.setItem('demoBetHistory', JSON.stringify(demoHistory.slice(0, 50))); // Keep last 50
     
+    setShowCollectModal(false);
     setGameStatus("waiting");
     setPlanePosition(0);
+    loadRecentBets();
   };
 
   const toggleMode = () => {
@@ -392,58 +450,56 @@ export const GameInterface = () => {
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <div className="container mx-auto px-4 py-6">
-        {/* Game Lounge Header — Balance + Mode Switch (inline) */}
-        <Card className="bg-slate-800 border-cyan-500/20 p-4 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div className="h-12 w-12 rounded-full bg-cyan-600 flex items-center justify-center">
-                <User className="h-6 w-6 text-white" />
+      <div className="container mx-auto px-4 py-3 sm:py-6">
+        {/* Game Lounge Header — compact balance + mode switch */}
+        <Card className="bg-slate-800 border-cyan-500/20 p-2 sm:p-4 mb-3 sm:mb-6">
+          <div className="flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-cyan-600 flex items-center justify-center flex-shrink-0">
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
-              <div>
-                <div className="text-sm text-gray-400">{t('game.welcome') || 'Welcome'}</div>
-                <div className="text-base font-semibold text-white">
+              <div className="min-w-0">
+                <div className="text-[10px] sm:text-xs text-gray-400 leading-tight">{t('game.welcome') || 'Welcome'}</div>
+                <div className="text-xs sm:text-sm font-semibold text-white truncate">
                   {isDemoMode ? t('game.demoUser') : (username || t('game.user'))}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="text-right">
-                <div className="text-xs text-gray-400">{t('game.currentBalance')}</div>
-                <div className="text-2xl font-bold text-cyan-400">
-                  ${currentBalance.toFixed(2)} <span className="text-xs text-gray-400">USDT</span>
-                </div>
+            <div className="text-right">
+              <div className="text-[10px] sm:text-xs text-gray-400 leading-tight">{t('game.currentBalance')}</div>
+              <div className="text-base sm:text-xl font-bold text-cyan-400 leading-tight">
+                ${currentBalance.toFixed(2)} <span className="text-[10px] text-gray-400">USDT</span>
               </div>
-
-              <div className="flex items-center space-x-2 bg-slate-900 px-3 py-2 rounded-lg border border-slate-700">
-                <span className={`text-xs font-semibold ${isDemoMode ? 'text-yellow-400' : 'text-gray-500'}`}>
-                  {t('game.demo')}
-                </span>
-                <Switch
-                  checked={!isDemoMode}
-                  onCheckedChange={toggleMode}
-                  className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-yellow-500"
-                />
-                <span className={`text-xs font-semibold ${!isDemoMode ? 'text-green-400' : 'text-gray-500'}`}>
-                  {t('game.real')}
-                </span>
-              </div>
-
-              {isDemoMode && currentBalance < 50 && (
-                <Button onClick={replenishDemoBalance} size="sm" variant="outline" className="text-xs">
-                  {t('game.replenish')}
-                </Button>
-              )}
             </div>
+
+            <div className="flex items-center space-x-2 bg-slate-900 px-2 py-1 rounded-lg border border-slate-700">
+              <span className={`text-[10px] sm:text-xs font-semibold ${isDemoMode ? 'text-yellow-400' : 'text-gray-500'}`}>
+                {t('game.demo')}
+              </span>
+              <Switch
+                checked={!isDemoMode}
+                onCheckedChange={toggleMode}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-yellow-500"
+              />
+              <span className={`text-[10px] sm:text-xs font-semibold ${!isDemoMode ? 'text-green-400' : 'text-gray-500'}`}>
+                {t('game.real')}
+              </span>
+            </div>
+
+            {isDemoMode && currentBalance < 50 && (
+              <Button onClick={replenishDemoBalance} size="sm" variant="outline" className="text-xs h-7">
+                {t('game.replenish')}
+              </Button>
+            )}
           </div>
         </Card>
 
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           
           {/* Game Display - Left Side */}
           <div className="flex-1">
-            <Card className="bg-slate-800/50 border-cyan-500/20 p-4 sm:p-6 h-64 sm:h-96">
+            <Card className="bg-slate-800/50 border-cyan-500/20 p-3 sm:p-6 h-44 sm:h-96">
               <div className="relative h-full bg-gradient-to-b from-blue-400/30 via-blue-600/20 to-blue-800/30 rounded-lg overflow-hidden">
                 
                 {/* Water and Sky Background */}
@@ -663,6 +719,46 @@ export const GameInterface = () => {
               </div>
             </Card>
 
+            {/* Recent Bets — directly below bet area */}
+            <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-white flex items-center">
+                  <Clock className="h-4 w-4 mr-2 text-cyan-400" />
+                  {t('game.recentBets') || 'Recent Bets'}
+                </h3>
+                <Link to={`/history`} className="text-xs text-cyan-400 hover:underline">
+                  {t('game.viewAll') || 'View all'}
+                </Link>
+              </div>
+              {recentBets.length === 0 ? (
+                <div className="text-xs text-gray-500 text-center py-3">
+                  {t('game.noRecentBets') || 'No bets yet — place your first bet!'}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {recentBets.map((b) => (
+                    <div key={b.id} className="flex items-center justify-between text-xs bg-slate-900/50 px-3 py-2 rounded">
+                      <div className="flex items-center gap-2">
+                        {b.status === 'won' ? (
+                          <TrendingUp className="h-3 w-3 text-green-400" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3 text-red-400" />
+                        )}
+                        <span className="text-gray-300">${b.amount.toFixed(2)}</span>
+                        <span className="text-gray-500">·</span>
+                        <span className="text-gray-400">{b.multiplier.toFixed(2)}x</span>
+                      </div>
+                      <span className={`font-bold ${b.status === 'won' ? 'text-green-400' : 'text-red-400'}`}>
+                        {b.status === 'won' ? `+$${b.payout.toFixed(2)}` : `-$${b.amount.toFixed(2)}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+
+
             {/* Recent Results */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
               <h3 className="text-lg font-semibold text-white mb-4">{t('game.gameStats')}</h3>
@@ -716,6 +812,42 @@ export const GameInterface = () => {
           </div>
         </div>
       </div>
+
+      {/* Collect Winnings Modal */}
+      <Dialog open={showCollectModal} onOpenChange={(open) => { if (!open) collectWinnings(); }}>
+        <DialogContent className="bg-slate-900 border-cyan-500/30 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl text-white">
+              {currentWinnings > parseFloat(betAmount) ? '🎉 ' + (t('game.youWon') || 'You Won!') : (t('game.roundOver') || 'Round Over')}
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-400">
+              {currentWinnings > parseFloat(betAmount)
+                ? (t('game.collectBeforeNext') || 'Collect your winnings before starting the next flight.')
+                : (t('game.betterLuck') || 'Better luck on the next flight.')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 text-center">
+            <div className="text-sm text-gray-400 mb-1">{t('game.finalMultiplier') || 'Final Multiplier'}</div>
+            <div className="text-3xl font-bold text-cyan-400 mb-4">{currentMultiplier.toFixed(2)}x</div>
+            <div className="text-sm text-gray-400 mb-1">
+              {currentWinnings > parseFloat(betAmount) ? (t('game.amountToCollect') || 'Amount to collect') : (t('game.amountLost') || 'Amount lost')}
+            </div>
+            <div className={`text-4xl font-extrabold ${currentWinnings > parseFloat(betAmount) ? 'text-green-400' : 'text-red-400'}`}>
+              {currentWinnings > parseFloat(betAmount)
+                ? `+$${currentWinnings.toFixed(2)}`
+                : `-$${parseFloat(betAmount).toFixed(2)}`}
+            </div>
+          </div>
+          <Button
+            onClick={collectWinnings}
+            className={`w-full font-bold py-3 text-lg ${currentWinnings > parseFloat(betAmount) ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-700 hover:bg-slate-600'} text-white`}
+          >
+            {currentWinnings > parseFloat(betAmount)
+              ? `${t('game.collectAndContinue') || 'Collect'} $${currentWinnings.toFixed(2)}`
+              : (t('game.continue') || 'Continue')}
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       {/* Auth Modal */}
       <AuthModal
