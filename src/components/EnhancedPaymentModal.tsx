@@ -289,12 +289,74 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
             </div>
           </div>
         </Card>
-        <Button onClick={onClose} className="w-full bg-cyan-600 hover:bg-cyan-700">
-          {t('payment.sentPayment')}
+        <Button
+          onClick={handlePaymentSent}
+          disabled={submittingPayment}
+          className="w-full bg-cyan-600 hover:bg-cyan-700"
+        >
+          {submittingPayment ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+          I've sent the payment
         </Button>
+
+        {/* Help with deposit */}
+        <Card className="bg-slate-700/40 border-purple-500/30 p-4">
+          {!showHelp ? (
+            <Button variant="ghost" onClick={() => setShowHelp(true)} className="w-full text-purple-300 hover:bg-purple-500/10 justify-start">
+              <HelpCircle className="h-4 w-4 mr-2" />
+              Need help making this deposit? Chat with support
+            </Button>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2 text-purple-300">
+                <MessageSquare className="h-4 w-4" />
+                <span className="text-sm font-semibold">Tell us what you need help with</span>
+              </div>
+              <Textarea
+                value={helpMessage}
+                onChange={(e) => setHelpMessage(e.target.value)}
+                placeholder="e.g. I sent BTC but the address looks different, can you confirm?"
+                rows={3}
+                className="bg-slate-800 border-slate-600 text-white text-sm"
+              />
+              <div className="flex gap-2">
+                <Button onClick={() => setShowHelp(false)} variant="outline" size="sm" className="flex-1">Cancel</Button>
+                <Button onClick={submitHelpRequest} disabled={!helpMessage.trim() || submittingHelp} size="sm" className="flex-1 bg-purple-600 hover:bg-purple-700">
+                  {submittingHelp ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1" />Send</>}
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
       </div>
     );
   };
+
+  const renderAwaitingConfirmationStep = () => (
+    <div className="space-y-5 py-4">
+      <div className="text-center">
+        <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-full bg-yellow-500/10 mb-4">
+          <Loader2 className="h-12 w-12 text-yellow-400 animate-spin" />
+          <Clock className="h-6 w-6 text-yellow-300 absolute" />
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">Waiting for payment confirmation</h3>
+        <p className="text-gray-400 text-sm px-4">
+          Your deposit of <span className="font-bold text-cyan-400">${amount} USDT</span> is being verified on the blockchain.
+          This usually takes 5–30 minutes depending on network congestion.
+        </p>
+      </div>
+      <Card className="bg-slate-700/40 border-yellow-500/20 p-4">
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between"><span className="text-gray-400">Status</span><span className="text-yellow-400 font-semibold">Pending</span></div>
+          <div className="flex justify-between"><span className="text-gray-400">Amount</span><span className="text-white">${amount} USDT</span></div>
+          <div className="flex justify-between"><span className="text-gray-400">Method</span><span className="text-white">{selectedCrypto?.toUpperCase()}</span></div>
+        </div>
+      </Card>
+      <p className="text-xs text-gray-500 text-center">
+        You can safely close this window — this transaction is now visible as <span className="text-yellow-400">Pending</span> in your transaction history.
+      </p>
+      <Button onClick={onClose} className="w-full bg-slate-700 hover:bg-slate-600">Close</Button>
+    </div>
+  );
 
   const renderWithdrawFormStep = () => {
     const cryptoName = selectedCrypto === 'btc' ? t('payment.btcName') : t('payment.usdtName');
