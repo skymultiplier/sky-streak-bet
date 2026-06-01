@@ -3,9 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Bitcoin, Copy, CheckCircle, Clock, CreditCard, Building2, ChevronDown, ChevronRight, Loader2, Shield, ArrowLeft, AlertCircle, Wallet, Coins } from "lucide-react";
+import { Bitcoin, Copy, CheckCircle, Clock, CreditCard, Building2, ChevronDown, ChevronRight, Loader2, Shield, ArrowLeft, AlertCircle, Wallet, Coins, HelpCircle, MessageSquare, Send } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface EnhancedPaymentModalProps {
   isOpen: boolean;
@@ -17,12 +21,17 @@ interface EnhancedPaymentModalProps {
 
 export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountChange }: EnhancedPaymentModalProps) => {
   const { t } = useLanguage();
-  const [step, setStep] = useState<'amount' | 'method-select' | 'crypto-select' | 'address-display' | 'withdraw-form' | 'processing'>('amount');
+  const { user } = useAuth();
+  const [step, setStep] = useState<'amount' | 'method-select' | 'crypto-select' | 'address-display' | 'withdraw-form' | 'processing' | 'awaiting-confirmation'>('amount');
   const [selectedCrypto, setSelectedCrypto] = useState<'usdt' | 'btc' | null>(null);
   const [countdown, setCountdown] = useState(600);
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
+  const [showHelp, setShowHelp] = useState(false);
+  const [helpMessage, setHelpMessage] = useState('');
+  const [submittingHelp, setSubmittingHelp] = useState(false);
+  const [submittingPayment, setSubmittingPayment] = useState(false);
 
   const addresses = {
     usdt: { tron: "TEWRV79s2P7ZzeAicmfVSGMAwhYHwETBsJ" },
