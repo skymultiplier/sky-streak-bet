@@ -811,6 +811,42 @@ export const GameInterface = () => {
         </div>
       </div>
 
+      {/* Collect Winnings Modal */}
+      <Dialog open={showCollectModal} onOpenChange={(open) => { if (!open) collectWinnings(); }}>
+        <DialogContent className="bg-slate-900 border-cyan-500/30 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl text-white">
+              {currentWinnings > parseFloat(betAmount) ? '🎉 ' + (t('game.youWon') || 'You Won!') : (t('game.roundOver') || 'Round Over')}
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-400">
+              {currentWinnings > parseFloat(betAmount)
+                ? (t('game.collectBeforeNext') || 'Collect your winnings before starting the next flight.')
+                : (t('game.betterLuck') || 'Better luck on the next flight.')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 text-center">
+            <div className="text-sm text-gray-400 mb-1">{t('game.finalMultiplier') || 'Final Multiplier'}</div>
+            <div className="text-3xl font-bold text-cyan-400 mb-4">{currentMultiplier.toFixed(2)}x</div>
+            <div className="text-sm text-gray-400 mb-1">
+              {currentWinnings > parseFloat(betAmount) ? (t('game.amountToCollect') || 'Amount to collect') : (t('game.amountLost') || 'Amount lost')}
+            </div>
+            <div className={`text-4xl font-extrabold ${currentWinnings > parseFloat(betAmount) ? 'text-green-400' : 'text-red-400'}`}>
+              {currentWinnings > parseFloat(betAmount)
+                ? `+$${currentWinnings.toFixed(2)}`
+                : `-$${parseFloat(betAmount).toFixed(2)}`}
+            </div>
+          </div>
+          <Button
+            onClick={collectWinnings}
+            className={`w-full font-bold py-3 text-lg ${currentWinnings > parseFloat(betAmount) ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-700 hover:bg-slate-600'} text-white`}
+          >
+            {currentWinnings > parseFloat(betAmount)
+              ? `${t('game.collectAndContinue') || 'Collect'} $${currentWinnings.toFixed(2)}`
+              : (t('game.continue') || 'Continue')}
+          </Button>
+        </DialogContent>
+      </Dialog>
+
       {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal}
