@@ -717,6 +717,43 @@ export const GameInterface = () => {
               </div>
             </Card>
 
+            {/* Recent Bets — directly below bet area */}
+            <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-white flex items-center">
+                  <Clock className="h-4 w-4 mr-2 text-cyan-400" />
+                  {t('game.recentBets') || 'Recent Bets'}
+                </h3>
+                <Link to={`/history`} className="text-xs text-cyan-400 hover:underline">
+                  {t('game.viewAll') || 'View all'}
+                </Link>
+              </div>
+              {recentBets.length === 0 ? (
+                <div className="text-xs text-gray-500 text-center py-3">
+                  {t('game.noRecentBets') || 'No bets yet — place your first bet!'}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {recentBets.map((b) => (
+                    <div key={b.id} className="flex items-center justify-between text-xs bg-slate-900/50 px-3 py-2 rounded">
+                      <div className="flex items-center gap-2">
+                        {b.status === 'won' ? (
+                          <TrendingUp className="h-3 w-3 text-green-400" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3 text-red-400" />
+                        )}
+                        <span className="text-gray-300">${b.amount.toFixed(2)}</span>
+                        <span className="text-gray-500">·</span>
+                        <span className="text-gray-400">{b.multiplier.toFixed(2)}x</span>
+                      </div>
+                      <span className={`font-bold ${b.status === 'won' ? 'text-green-400' : 'text-red-400'}`}>
+                        {b.status === 'won' ? `+$${b.payout.toFixed(2)}` : `-$${b.amount.toFixed(2)}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
             {/* Recent Results */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
               <h3 className="text-lg font-semibold text-white mb-4">{t('game.gameStats')}</h3>
