@@ -295,8 +295,10 @@ export const GameInterface = () => {
   };
 
   const collectWinnings = async () => {
+    if (gameStatus !== "collect" && gameStatus !== "crashed") return;
     const finalMultiplier = currentMultiplier;
     const isWin = currentWinnings > parseFloat(betAmount);
+    
     
     if (isDemoMode) {
       // Demo mode logic
