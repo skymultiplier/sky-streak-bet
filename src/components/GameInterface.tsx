@@ -42,6 +42,8 @@ export const GameInterface = () => {
   const [lossStreak, setLossStreak] = useState(0);
   const [showWinningEffect, setShowWinningEffect] = useState(false);
   const [currentBetId, setCurrentBetId] = useState<string | null>(null);
+  const [showCollectModal, setShowCollectModal] = useState(false);
+  const [recentBets, setRecentBets] = useState<RecentBet[]>([]);
 
   const { playBetSound, playWinSound, startBackgroundMusic, stopBackgroundMusic } = useSoundEffects();
   const { user, userProfile, refreshProfile, balance, username, isAuthenticated } = useAuth();
