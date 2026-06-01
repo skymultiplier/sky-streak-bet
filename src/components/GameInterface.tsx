@@ -404,8 +404,10 @@ export const GameInterface = () => {
     demoHistory.unshift(newBet);
     localStorage.setItem('demoBetHistory', JSON.stringify(demoHistory.slice(0, 50))); // Keep last 50
     
+    setShowCollectModal(false);
     setGameStatus("waiting");
     setPlanePosition(0);
+    loadRecentBets();
   };
 
   const toggleMode = () => {
