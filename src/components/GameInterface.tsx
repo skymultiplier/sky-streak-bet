@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Plane, TrendingUp, Bomb, DollarSign, Waves, Mountain, Gift, User, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Plane, TrendingUp, TrendingDown, Bomb, DollarSign, Waves, Mountain, Gift, User, Sparkles, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
 import { useSoundEffects } from "../hooks/useSoundEffects";
@@ -11,6 +12,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+interface RecentBet {
+  id: string | number;
+  amount: number;
+  payout: number;
+  multiplier: number;
+  status: 'won' | 'lost';
+  created_at: string;
+}
 
 interface MultiplierBox {
   id: number;
