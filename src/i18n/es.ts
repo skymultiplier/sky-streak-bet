@@ -251,7 +251,6 @@ export const esTranslations: Record<string, string> = {
   'referral.copied': '¡Código de referido copiado!',
   'nav.dashboard': "Panel de cuenta",
   'nav.referrals': "Referidos",
-  'account.signedOut': "Sesión cerrada",
   'account.minDeposit': "Mínimo $100 USDT",
   'account.cryptoOnlyHint': "Tarjeta y transferencia no disponibles en tu región.",
   'account.depositFirst': "Deposita primero para habilitar retiros",

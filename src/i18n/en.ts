@@ -251,7 +251,6 @@ export const enTranslations: Record<string, string> = {
   'referral.copied': 'Referral code copied!',
   'nav.dashboard': "Account Dashboard",
   'nav.referrals': "Referrals",
-  'account.signedOut': "Signed out",
   'account.minDeposit': "Minimum $100 USDT",
   'account.cryptoOnlyHint': "Card & bank transfer not available in your region.",
   'account.depositFirst': "Deposit first to enable withdrawals",

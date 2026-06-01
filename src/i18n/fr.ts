@@ -251,7 +251,6 @@ export const frTranslations: Record<string, string> = {
   'referral.copied': 'Code de parrainage copié!',
   'nav.dashboard': "Tableau de bord",
   'nav.referrals': "Parrainage",
-  'account.signedOut': "Déconnecté",
   'account.minDeposit': "Minimum 100 $ USDT",
   'account.cryptoOnlyHint': "Carte et virement bancaire non disponibles dans votre région.",
   'account.depositFirst': "Déposez d'abord pour activer les retraits",
