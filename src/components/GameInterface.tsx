@@ -46,54 +46,43 @@ export const GameInterface = () => {
     };
   }, []);
 
-  // Generate random multiplier boxes - improved odds for demo mode to be more enticing
+  // Generate random multiplier boxes — losing odds dominate, smaller wins
   const generateMultiplierBoxes = () => {
     const boxes: MultiplierBox[] = [];
-    
-    // Track rounds for demo jackpot timing
-    const roundsSinceJackpot = localStorage.getItem('roundsSinceJackpot') || '0';
-    const currentRounds = parseInt(roundsSinceJackpot) + 1;
-    
+
     for (let i = 0; i < 6; i++) {
       const rand = Math.random();
       let multiplier;
-      
+
       if (isDemoMode) {
-        // Demo mode - fairer but still 2x better than real mode
-        const jackpotChance = currentRounds >= 10 ? 0.02 : 0; // 2% chance after 10 rounds
-        const rareChance = 0.15; // 15% chance for rare
-        const commonHighChance = 0.60; // 60% for upper common range
-        
-        if (rand < jackpotChance) {
-          // Jackpot: 10x - 50x multipliers
-          multiplier = +(Math.random() * 40 + 10).toFixed(1);
-          localStorage.setItem('roundsSinceJackpot', '0'); // Reset counter
-        } else if (rand < jackpotChance + rareChance) {
-          // Rare: 4.4x - 10x multipliers
-          multiplier = +(Math.random() * 5.6 + 4.4).toFixed(1);
-        } else if (rand < jackpotChance + rareChance + commonHighChance) {
-          // Common high: 1.5x - 4.3x (winning range)
-          multiplier = +(Math.random() * 2.8 + 1.5).toFixed(1);
-        } else {
-          // Common low: 0.5x - 1.4x (losing but fair)
-          multiplier = +(Math.random() * 0.9 + 0.5).toFixed(1);
-        }
-        
-        localStorage.setItem('roundsSinceJackpot', currentRounds.toString());
-      } else {
-        // Real mode - realistic gambling odds
-        if (rand < 0.75) {
-          // 75% chance for losing/low multipliers (0.5x - 1.2x)
-          multiplier = +(Math.random() * 0.7 + 0.5).toFixed(1);
+        // Demo — most boxes are losses, occasional small/medium wins
+        if (rand < 0.65) {
+          // 65% losing: 0.3x – 0.9x
+          multiplier = +(Math.random() * 0.6 + 0.3).toFixed(1);
         } else if (rand < 0.90) {
-          // 15% chance for small profit multipliers (1.3x - 2.0x)
-          multiplier = +(Math.random() * 0.7 + 1.3).toFixed(1);
-        } else if (rand < 0.98) {
-          // 8% chance for decent multipliers (2.1x - 4.0x)
-          multiplier = +(Math.random() * 1.9 + 2.1).toFixed(1);
+          // 25% small win: 1.1x – 1.8x
+          multiplier = +(Math.random() * 0.7 + 1.1).toFixed(1);
+        } else if (rand < 0.99) {
+          // 9% medium win: 1.9x – 3.0x
+          multiplier = +(Math.random() * 1.1 + 1.9).toFixed(1);
         } else {
-          // 2% chance for big multipliers (4.1x - 8.0x)
-          multiplier = +(Math.random() * 3.9 + 4.1).toFixed(1);
+          // 1% rare bigger win: 3.1x – 5.0x
+          multiplier = +(Math.random() * 1.9 + 3.1).toFixed(1);
+        }
+      } else {
+        // Real — heavy house edge, much rarer wins, capped low
+        if (rand < 0.85) {
+          // 85% losing: 0.2x – 0.9x
+          multiplier = +(Math.random() * 0.7 + 0.2).toFixed(1);
+        } else if (rand < 0.97) {
+          // 12% small win: 1.1x – 1.6x
+          multiplier = +(Math.random() * 0.5 + 1.1).toFixed(1);
+        } else if (rand < 0.998) {
+          // ~2.8% decent win: 1.7x – 2.5x
+          multiplier = +(Math.random() * 0.8 + 1.7).toFixed(1);
+        } else {
+          // ~0.2% rare win: 2.6x – 3.5x cap
+          multiplier = +(Math.random() * 0.9 + 2.6).toFixed(1);
         }
       }
 
@@ -102,7 +91,7 @@ export const GameInterface = () => {
         multiplier,
         revealed: false,
         hit: false,
-        position: (i + 1) * (90 / 7) // Distribute along the path
+        position: (i + 1) * (90 / 7)
       });
     }
     return boxes;
