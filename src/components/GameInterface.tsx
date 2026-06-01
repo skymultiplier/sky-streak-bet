@@ -361,9 +361,11 @@ export const GameInterface = () => {
       });
     }
     
+    setShowCollectModal(false);
     setGameStatus("waiting");
     setPlanePosition(0);
     setCurrentBetId(null);
+    await loadRecentBets();
   };
 
   const collectDemoWinnings = (isWin: boolean, finalMultiplier: number) => {
