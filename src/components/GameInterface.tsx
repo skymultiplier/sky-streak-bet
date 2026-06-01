@@ -753,6 +753,9 @@ export const GameInterface = () => {
                   ))}
                 </div>
               )}
+            </Card>
+
+
 
             {/* Recent Results */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
