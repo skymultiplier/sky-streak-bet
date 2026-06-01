@@ -158,7 +158,6 @@ export const frTranslations: Record<string, string> = {
   'account.realMoney': 'ARGENT RÉEL',
   'account.signOut': 'Déconnexion',
   'account.signedOut': 'Déconnecté',
-  'account.signedOutDesc': 'Vous avez été déconnecté avec succès.',
   'account.depositFunds': 'Déposer des Fonds',
   'account.withdrawFunds': 'Retirer des Fonds',
   'account.depositCrypto': 'Déposer via Crypto',

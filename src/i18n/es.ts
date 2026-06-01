@@ -158,7 +158,6 @@ export const esTranslations: Record<string, string> = {
   'account.realMoney': 'DINERO REAL',
   'account.signOut': 'Cerrar Sesión',
   'account.signedOut': 'Sesión Cerrada',
-  'account.signedOutDesc': 'Has cerrado sesión exitosamente.',
   'account.depositFunds': 'Depositar Fondos',
   'account.withdrawFunds': 'Retirar Fondos',
   'account.depositCrypto': 'Depositar vía Crypto',

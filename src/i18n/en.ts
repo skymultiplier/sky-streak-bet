@@ -158,7 +158,6 @@ export const enTranslations: Record<string, string> = {
   'account.realMoney': 'REAL MONEY',
   'account.signOut': 'Sign Out',
   'account.signedOut': 'Signed out',
-  'account.signedOutDesc': 'You have been successfully signed out.',
   'account.depositFunds': 'Deposit Funds',
   'account.withdrawFunds': 'Withdraw Funds',
   'account.depositCrypto': 'Deposit via Crypto',

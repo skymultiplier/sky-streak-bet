@@ -87,7 +87,6 @@ export const ptTranslations: Record<string, string> = {
   'account.walletBalance': 'Saldo da Carteira', 'account.welcome': 'Bem-vindo',
   'account.realAccount': 'Conta Real', 'account.realMoney': 'DINHEIRO REAL',
   'account.signOut': 'Sair', 'account.signedOut': 'Desconectado',
-  'account.signedOutDesc': 'Você foi desconectado.',
   'account.depositFunds': 'Depositar Fundos', 'account.withdrawFunds': 'Sacar Fundos',
   'account.depositCrypto': 'Depositar via Crypto', 'account.withdrawCrypto': 'Sacar via Crypto',
   'account.creditCard': 'Cartão de Crédito/Débito', 'account.bankTransfer': 'Transferência Bancária',
