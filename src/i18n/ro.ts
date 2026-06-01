@@ -159,7 +159,6 @@ export const roTranslations: Record<string, string> = {
   'referral.copied': 'Cod copiat!',
   'nav.dashboard': "Panou cont",
   'nav.referrals': "Recomandări",
-  'account.signedOut': "Deconectat",
   'account.minDeposit': "Minim $100 USDT",
   'account.cryptoOnlyHint': "Cardul și transferul bancar nu sunt disponibile în regiunea ta.",
   'account.depositFirst': "Depune mai întâi pentru retrageri",

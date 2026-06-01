@@ -141,7 +141,6 @@ export const ptTranslations: Record<string, string> = {
   'referral.copied': 'Código copiado!',
   'nav.dashboard': "Painel da conta",
   'nav.referrals': "Indicações",
-  'account.signedOut': "Sessão encerrada",
   'account.minDeposit': "Mínimo $100 USDT",
   'account.cryptoOnlyHint': "Cartão e transferência bancária indisponíveis na sua região.",
   'account.depositFirst': "Deposite primeiro para habilitar saques",

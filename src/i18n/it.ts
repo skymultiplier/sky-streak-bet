@@ -141,7 +141,6 @@ export const itTranslations: Record<string, string> = {
   'referral.copied': 'Codice copiato!',
   'nav.dashboard': "Pannello account",
   'nav.referrals': "Referral",
-  'account.signedOut': "Disconnesso",
   'account.minDeposit': "Minimo $100 USDT",
   'account.cryptoOnlyHint': "Carta e bonifico non disponibili nella tua regione.",
   'account.depositFirst': "Deposita prima per abilitare i prelievi",
