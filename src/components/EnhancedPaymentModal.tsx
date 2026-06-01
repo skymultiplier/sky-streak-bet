@@ -87,6 +87,55 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
     setTimeout(() => { setIsProcessing(false); onClose(); }, 3000);
   };
 
+  const handlePaymentSent = async () => {
+    if (!user) {
+      toast({ title: 'Not signed in', description: 'Please sign in to record this deposit.', variant: 'destructive' });
+      onClose();
+      return;
+    }
+    setSubmittingPayment(true);
+    try {
+      const { error } = await supabase.from('transactions').insert({
+        user_id: user.id,
+        type: 'deposit',
+        amount: parseFloat(amount) || 0,
+        status: 'pending',
+        description: `Pending ${selectedCrypto?.toUpperCase()} deposit — awaiting blockchain confirmation`,
+      });
+      if (error) throw error;
+      toast({ title: 'Deposit submitted', description: 'We are waiting for blockchain confirmation.' });
+      setStep('awaiting-confirmation');
+    } catch (e: any) {
+      toast({ title: 'Could not record deposit', description: e.message, variant: 'destructive' });
+    } finally {
+      setSubmittingPayment(false);
+    }
+  };
+
+  const submitHelpRequest = async () => {
+    if (!user) {
+      toast({ title: 'Not signed in', description: 'Please sign in to contact support.', variant: 'destructive' });
+      return;
+    }
+    setSubmittingHelp(true);
+    try {
+      const { error } = await supabase.from('support_tickets').insert({
+        user_id: user.id,
+        subject: `Help with ${type} — $${amount} ${selectedCrypto?.toUpperCase() || ''}`,
+        message: helpMessage.trim(),
+        status: 'open',
+      });
+      if (error) throw error;
+      toast({ title: 'Message sent', description: 'Our support team will get back to you shortly.' });
+      setHelpMessage('');
+      setShowHelp(false);
+    } catch (e: any) {
+      toast({ title: 'Could not send message', description: e.message, variant: 'destructive' });
+    } finally {
+      setSubmittingHelp(false);
+    }
+  };
+
   const handleBack = () => {
     if (step === 'method-select') setStep('amount');
     else if (step === 'crypto-select') setStep('method-select');
