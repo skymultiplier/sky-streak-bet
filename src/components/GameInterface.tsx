@@ -448,58 +448,56 @@ export const GameInterface = () => {
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <div className="container mx-auto px-4 py-6">
-        {/* Game Lounge Header — Balance + Mode Switch (inline) */}
-        <Card className="bg-slate-800 border-cyan-500/20 p-4 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div className="h-12 w-12 rounded-full bg-cyan-600 flex items-center justify-center">
-                <User className="h-6 w-6 text-white" />
+      <div className="container mx-auto px-4 py-3 sm:py-6">
+        {/* Game Lounge Header — compact balance + mode switch */}
+        <Card className="bg-slate-800 border-cyan-500/20 p-2 sm:p-4 mb-3 sm:mb-6">
+          <div className="flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-cyan-600 flex items-center justify-center flex-shrink-0">
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
-              <div>
-                <div className="text-sm text-gray-400">{t('game.welcome') || 'Welcome'}</div>
-                <div className="text-base font-semibold text-white">
+              <div className="min-w-0">
+                <div className="text-[10px] sm:text-xs text-gray-400 leading-tight">{t('game.welcome') || 'Welcome'}</div>
+                <div className="text-xs sm:text-sm font-semibold text-white truncate">
                   {isDemoMode ? t('game.demoUser') : (username || t('game.user'))}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="text-right">
-                <div className="text-xs text-gray-400">{t('game.currentBalance')}</div>
-                <div className="text-2xl font-bold text-cyan-400">
-                  ${currentBalance.toFixed(2)} <span className="text-xs text-gray-400">USDT</span>
-                </div>
+            <div className="text-right">
+              <div className="text-[10px] sm:text-xs text-gray-400 leading-tight">{t('game.currentBalance')}</div>
+              <div className="text-base sm:text-xl font-bold text-cyan-400 leading-tight">
+                ${currentBalance.toFixed(2)} <span className="text-[10px] text-gray-400">USDT</span>
               </div>
-
-              <div className="flex items-center space-x-2 bg-slate-900 px-3 py-2 rounded-lg border border-slate-700">
-                <span className={`text-xs font-semibold ${isDemoMode ? 'text-yellow-400' : 'text-gray-500'}`}>
-                  {t('game.demo')}
-                </span>
-                <Switch
-                  checked={!isDemoMode}
-                  onCheckedChange={toggleMode}
-                  className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-yellow-500"
-                />
-                <span className={`text-xs font-semibold ${!isDemoMode ? 'text-green-400' : 'text-gray-500'}`}>
-                  {t('game.real')}
-                </span>
-              </div>
-
-              {isDemoMode && currentBalance < 50 && (
-                <Button onClick={replenishDemoBalance} size="sm" variant="outline" className="text-xs">
-                  {t('game.replenish')}
-                </Button>
-              )}
             </div>
+
+            <div className="flex items-center space-x-2 bg-slate-900 px-2 py-1 rounded-lg border border-slate-700">
+              <span className={`text-[10px] sm:text-xs font-semibold ${isDemoMode ? 'text-yellow-400' : 'text-gray-500'}`}>
+                {t('game.demo')}
+              </span>
+              <Switch
+                checked={!isDemoMode}
+                onCheckedChange={toggleMode}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-yellow-500"
+              />
+              <span className={`text-[10px] sm:text-xs font-semibold ${!isDemoMode ? 'text-green-400' : 'text-gray-500'}`}>
+                {t('game.real')}
+              </span>
+            </div>
+
+            {isDemoMode && currentBalance < 50 && (
+              <Button onClick={replenishDemoBalance} size="sm" variant="outline" className="text-xs h-7">
+                {t('game.replenish')}
+              </Button>
+            )}
           </div>
         </Card>
 
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           
           {/* Game Display - Left Side */}
           <div className="flex-1">
-            <Card className="bg-slate-800/50 border-cyan-500/20 p-4 sm:p-6 h-64 sm:h-96">
+            <Card className="bg-slate-800/50 border-cyan-500/20 p-3 sm:p-6 h-44 sm:h-96">
               <div className="relative h-full bg-gradient-to-b from-blue-400/30 via-blue-600/20 to-blue-800/30 rounded-lg overflow-hidden">
                 
                 {/* Water and Sky Background */}
