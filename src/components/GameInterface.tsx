@@ -50,13 +50,53 @@ export const GameInterface = () => {
   const { t } = useLanguage();
 
   useEffect(() => {
-    // Start background music when component mounts
     startBackgroundMusic();
-
-    return () => {
-      stopBackgroundMusic();
-    };
+    return () => { stopBackgroundMusic(); };
   }, []);
+
+  // Auto-show the collect modal when round ends
+  useEffect(() => {
+    if (gameStatus === "collect" || gameStatus === "crashed") {
+      setShowCollectModal(true);
+    }
+  }, [gameStatus]);
+
+  // Load recent bets
+  useEffect(() => {
+    loadRecentBets();
+  }, [user, isDemoMode]);
+
+  const loadRecentBets = async () => {
+    if (isDemoMode) {
+      const demoHistory = JSON.parse(localStorage.getItem('demoBetHistory') || '[]');
+      setRecentBets(demoHistory.slice(0, 5).map((b: any) => ({
+        id: b.id,
+        amount: b.bet_amount,
+        payout: b.payout,
+        multiplier: parseFloat(b.multiplier),
+        status: b.status,
+        created_at: b.created_at,
+      })));
+      return;
+    }
+    if (!user) { setRecentBets([]); return; }
+    const { data } = await supabase
+      .from('bets')
+      .select('id, amount, profit, cashout_multiplier, status, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    if (data) {
+      setRecentBets(data.map((b: any) => ({
+        id: b.id,
+        amount: Number(b.amount),
+        payout: b.status === 'won' ? Number(b.amount) + Number(b.profit || 0) : 0,
+        multiplier: Number(b.cashout_multiplier || 0),
+        status: b.status === 'won' ? 'won' : 'lost',
+        created_at: b.created_at,
+      })));
+    }
+  };
 
   // Generate random multiplier boxes — losing odds dominate, smaller wins
   const generateMultiplierBoxes = () => {
