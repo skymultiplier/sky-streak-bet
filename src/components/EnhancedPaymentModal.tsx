@@ -476,6 +476,7 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
       case 'address-display': return t('payment.depositAddress');
       case 'withdraw-form': return t('payment.withdrawDetails');
       case 'processing': return t('payment.processing');
+      case 'awaiting-confirmation': return 'Payment Pending';
       default: return type === 'deposit' ? t('payment.deposit') : t('payment.withdraw');
     }
   };
@@ -493,6 +494,7 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
           {step === 'address-display' && renderAddressDisplayStep()}
           {step === 'withdraw-form' && renderWithdrawFormStep()}
           {step === 'processing' && renderProcessingStep()}
+          {step === 'awaiting-confirmation' && renderAwaitingConfirmationStep()}
         </div>
       </DialogContent>
     </Dialog>
