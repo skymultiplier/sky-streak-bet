@@ -109,7 +109,9 @@ export const GameInterface = () => {
       setRecentBets(data.map((b: any) => ({
         id: b.id,
         amount: Number(b.amount),
-        payout: b.status === 'won' ? Number(b.amount) + Number(b.profit || 0) : 0,
+        // Always show the actual collected payout (bet × multiplier),
+        // even when the multiplier was below 1.0x.
+        payout: Number(b.amount) * Number(b.cashout_multiplier || 0),
         multiplier: Number(b.cashout_multiplier || 0),
         status: b.status === 'won' ? 'won' : 'lost',
         created_at: b.created_at,
