@@ -44,15 +44,24 @@ export const GameInterface = () => {
   const [currentBetId, setCurrentBetId] = useState<string | null>(null);
   const [showCollectModal, setShowCollectModal] = useState(false);
   const [recentBets, setRecentBets] = useState<RecentBet[]>([]);
+  const [isMuted, setIsMuted] = useState(false);
 
   const { playBetSound, playWinSound, startBackgroundMusic, stopBackgroundMusic } = useSoundEffects();
   const { user, userProfile, refreshProfile, balance, username, isAuthenticated } = useAuth();
   const { t } = useLanguage();
 
   useEffect(() => {
-    startBackgroundMusic();
+    if (!isMuted) startBackgroundMusic();
     return () => { stopBackgroundMusic(); };
-  }, []);
+  }, [isMuted]);
+
+  const toggleMute = () => {
+    setIsMuted((m) => {
+      const next = !m;
+      if (next) stopBackgroundMusic();
+      return next;
+    });
+  };
 
   // Auto-show the collect modal when round ends
   useEffect(() => {
