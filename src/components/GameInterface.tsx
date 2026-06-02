@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Plane, TrendingUp, TrendingDown, Bomb, DollarSign, Waves, Mountain, Gift, User, Sparkles, Clock } from "lucide-react";
+import { Plane, TrendingUp, TrendingDown, Bomb, DollarSign, Waves, Mountain, Gift, User, Sparkles, Clock, Volume2, VolumeX } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
 import { useSoundEffects } from "../hooks/useSoundEffects";
@@ -44,15 +44,24 @@ export const GameInterface = () => {
   const [currentBetId, setCurrentBetId] = useState<string | null>(null);
   const [showCollectModal, setShowCollectModal] = useState(false);
   const [recentBets, setRecentBets] = useState<RecentBet[]>([]);
+  const [isMuted, setIsMuted] = useState(false);
 
   const { playBetSound, playWinSound, startBackgroundMusic, stopBackgroundMusic } = useSoundEffects();
   const { user, userProfile, refreshProfile, balance, username, isAuthenticated } = useAuth();
   const { t } = useLanguage();
 
   useEffect(() => {
-    startBackgroundMusic();
+    if (!isMuted) startBackgroundMusic();
     return () => { stopBackgroundMusic(); };
-  }, []);
+  }, [isMuted]);
+
+  const toggleMute = () => {
+    setIsMuted((m) => {
+      const next = !m;
+      if (next) stopBackgroundMusic();
+      return next;
+    });
+  };
 
   // Auto-show the collect modal when round ends
   useEffect(() => {
@@ -218,7 +227,7 @@ export const GameInterface = () => {
     }
     
     // Play bet sound effect
-    playBetSound();
+    if (!isMuted) playBetSound();
     
     try {
       // Place bet using Supabase
@@ -278,7 +287,7 @@ export const GameInterface = () => {
       return;
     }
 
-    playBetSound();
+    if (!isMuted) playBetSound();
     setGameStatus("flying");
     setPlanePosition(0);
     setCurrentMultiplier(1.0);
@@ -297,72 +306,57 @@ export const GameInterface = () => {
   const collectWinnings = async () => {
     if (gameStatus !== "collect" && gameStatus !== "crashed") return;
     const finalMultiplier = currentMultiplier;
-    const isWin = currentWinnings > parseFloat(betAmount);
-    
-    
+    const betAmt = parseFloat(betAmount);
+    const isWin = currentWinnings > betAmt;
+
     if (isDemoMode) {
-      // Demo mode logic
       collectDemoWinnings(isWin, finalMultiplier);
       return;
     }
 
     if (!currentBetId) {
-      toast({
-        title: t('game.error'),
-        description: t('game.noActiveBet'),
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "No active bet found.", variant: "destructive" });
       return;
     }
 
     try {
-      // Resolve bet using Supabase
+      // Always resolve as "not crashed" so the remaining amount (bet × multiplier)
+      // is credited back to the user, even when it's less than the original stake.
       const { data, error } = await supabase.rpc('resolve_bet', {
         p_bet_id: currentBetId,
         p_cashout_multiplier: finalMultiplier,
-        p_crashed: !isWin
+        p_crashed: false,
       });
 
       if (error) {
         console.error('Error resolving bet:', error);
-        toast({
-          title: t('game.error'),
-          description: t('game.failedToResolveBet'),
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Failed to resolve bet.", variant: "destructive" });
         return;
       }
 
-      const result = data as { success: boolean; payout?: number; new_balance?: number; error?: string };
-
-      // Update loss streak based on win/loss
       if (isWin) {
-        setLossStreak(0); // Reset streak on win
-        playWinSound();
-        // Show winning visual effect
+        setLossStreak(0);
+        if (!isMuted) playWinSound();
         setShowWinningEffect(true);
         setTimeout(() => setShowWinningEffect(false), 3000);
-        
         toast({
-          title: t('game.congratulations'),
-          description: `${t('game.youWon')} $${(result.payout || 0).toFixed(2)}!`,
+          title: "Congratulations!",
+          description: `You won $${currentWinnings.toFixed(2)}!`,
         });
       } else {
-        setLossStreak(prev => prev + 1); // Increment streak on loss
+        setLossStreak((prev) => prev + 1);
+        toast({
+          title: "Round over",
+          description: `Recovered $${currentWinnings.toFixed(2)} of your $${betAmt.toFixed(2)} bet.`,
+        });
       }
-      
-      // Refresh user profile to get updated balance
+
       await refreshProfile();
-      
-    } catch (error) {
-      console.error('Error resolving bet:', error);
-      toast({
-        title: t('game.error'),
-        description: t('game.failedToResolveBet'),
-        variant: "destructive",
-      });
+    } catch (e) {
+      console.error('Error resolving bet:', e);
+      toast({ title: "Error", description: "Failed to resolve bet.", variant: "destructive" });
     }
-    
+
     setShowCollectModal(false);
     setGameStatus("waiting");
     setPlanePosition(0);
@@ -373,39 +367,41 @@ export const GameInterface = () => {
   const collectDemoWinnings = (isWin: boolean, finalMultiplier: number) => {
     const savedBalance = localStorage.getItem('demoBalance') || '1000';
     let currentBalance = parseFloat(savedBalance);
-    
-    // Update loss streak based on win/loss
+    const betAmt = parseFloat(betAmount);
+
+    // Always credit whatever remains (currentWinnings = bet × multiplier).
+    currentBalance += currentWinnings;
+    localStorage.setItem('demoBalance', currentBalance.toString());
+
     if (isWin) {
-      setLossStreak(0); // Reset streak on win
-      playWinSound();
-      // Show winning visual effect
+      setLossStreak(0);
+      if (!isMuted) playWinSound();
       setShowWinningEffect(true);
       setTimeout(() => setShowWinningEffect(false), 3000);
-      
-      currentBalance += currentWinnings;
-      localStorage.setItem('demoBalance', currentBalance.toString());
-      
       toast({
-        title: t('game.demoWin'),
-        description: `${t('game.youWon')} $${currentWinnings.toFixed(2)}!`,
+        title: "Demo win!",
+        description: `You won $${currentWinnings.toFixed(2)}!`,
       });
     } else {
-      setLossStreak(prev => prev + 1); // Increment streak on loss
+      setLossStreak((prev) => prev + 1);
+      toast({
+        title: "Round over",
+        description: `Recovered $${currentWinnings.toFixed(2)} of your $${betAmt.toFixed(2)} bet.`,
+      });
     }
-    
-    // Add to demo bet history (localStorage)
+
     const demoHistory = JSON.parse(localStorage.getItem('demoBetHistory') || '[]');
     const newBet = {
       id: Date.now(),
-      bet_amount: parseFloat(betAmount),
+      bet_amount: betAmt,
       multiplier: finalMultiplier.toFixed(1) + 'x',
-      payout: isWin ? currentWinnings : 0,
+      payout: currentWinnings,
       created_at: new Date().toISOString(),
-      status: isWin ? 'won' : 'lost'
+      status: isWin ? 'won' : 'lost',
     };
     demoHistory.unshift(newBet);
-    localStorage.setItem('demoBetHistory', JSON.stringify(demoHistory.slice(0, 50))); // Keep last 50
-    
+    localStorage.setItem('demoBetHistory', JSON.stringify(demoHistory.slice(0, 50)));
+
     setShowCollectModal(false);
     setGameStatus("waiting");
     setPlanePosition(0);
@@ -492,6 +488,17 @@ export const GameInterface = () => {
                 {t('game.replenish')}
               </Button>
             )}
+
+            <Button
+              onClick={toggleMute}
+              size="sm"
+              variant="outline"
+              className="text-xs h-7 px-2 border-slate-600 text-gray-300 hover:bg-slate-700"
+              title={isMuted ? "Unmute sound" : "Mute sound"}
+              aria-label={isMuted ? "Unmute sound" : "Mute sound"}
+            >
+              {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+            </Button>
           </div>
         </Card>
 
@@ -813,41 +820,65 @@ export const GameInterface = () => {
         </div>
       </div>
 
-      {/* Collect Winnings Modal */}
+      {/* Round-end Modal */}
       <Dialog open={showCollectModal} onOpenChange={(open) => { if (!open) collectWinnings(); }}>
         <DialogContent className="bg-slate-900 border-cyan-500/30 max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-center text-2xl text-white">
-              {currentWinnings > parseFloat(betAmount) ? '🎉 ' + (t('game.youWon') || 'You Won!') : (t('game.roundOver') || 'Round Over')}
-            </DialogTitle>
-            <DialogDescription className="text-center text-gray-400">
-              {currentWinnings > parseFloat(betAmount)
-                ? (t('game.collectBeforeNext') || 'Collect your winnings before starting the next flight.')
-                : (t('game.betterLuck') || 'Better luck on the next flight.')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 text-center">
-            <div className="text-sm text-gray-400 mb-1">{t('game.finalMultiplier') || 'Final Multiplier'}</div>
-            <div className="text-3xl font-bold text-cyan-400 mb-4">{currentMultiplier.toFixed(2)}x</div>
-            <div className="text-sm text-gray-400 mb-1">
-              {currentWinnings > parseFloat(betAmount) ? (t('game.amountToCollect') || 'Amount to collect') : (t('game.amountLost') || 'Amount lost')}
-            </div>
-            <div className={`text-4xl font-extrabold ${currentWinnings > parseFloat(betAmount) ? 'text-green-400' : 'text-red-400'}`}>
-              {currentWinnings > parseFloat(betAmount)
-                ? `+$${currentWinnings.toFixed(2)}`
-                : `-$${parseFloat(betAmount).toFixed(2)}`}
-            </div>
-          </div>
-          <Button
-            onClick={collectWinnings}
-            className={`w-full font-bold py-3 text-lg ${currentWinnings > parseFloat(betAmount) ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-700 hover:bg-slate-600'} text-white`}
-          >
-            {currentWinnings > parseFloat(betAmount)
-              ? `${t('game.collectAndContinue') || 'Collect'} $${currentWinnings.toFixed(2)}`
-              : (t('game.continue') || 'Continue')}
-          </Button>
+          {(() => {
+            const betAmt = parseFloat(betAmount) || 0;
+            const net = currentWinnings - betAmt;
+            const isWin = net > 0;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-center text-2xl text-white">
+                    {isWin ? "🎉 You Won!" : "Round Over"}
+                  </DialogTitle>
+                  <DialogDescription className="text-center text-gray-400">
+                    {isWin
+                      ? "Collect your winnings to add them to your balance."
+                      : "Your remaining amount will be returned to your balance."}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="py-4 space-y-3 text-center">
+                  <div>
+                    <div className="text-sm text-gray-400">Final multiplier</div>
+                    <div className="text-3xl font-bold text-cyan-400">{currentMultiplier.toFixed(2)}x</div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-left bg-slate-800/60 rounded-lg p-3">
+                    <div>
+                      <div className="text-xs text-gray-400">Your bet</div>
+                      <div className="text-base font-semibold text-white">${betAmt.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-400">Amount returned</div>
+                      <div className="text-base font-semibold text-cyan-300">${currentWinnings.toFixed(2)}</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-400">{isWin ? "Profit" : "Loss"}</div>
+                    <div className={`text-4xl font-extrabold ${isWin ? "text-green-400" : "text-red-400"}`}>
+                      {isWin ? `+$${net.toFixed(2)}` : `-$${Math.abs(net).toFixed(2)}`}
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={collectWinnings}
+                  className={`w-full font-bold py-3 text-lg text-white ${isWin ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}`}
+                >
+                  {isWin
+                    ? `Collect $${currentWinnings.toFixed(2)}`
+                    : `Return $${currentWinnings.toFixed(2)} to balance`}
+                </Button>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
+
 
       {/* Auth Modal */}
       <AuthModal
