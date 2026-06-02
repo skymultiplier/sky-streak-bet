@@ -287,7 +287,7 @@ export const GameInterface = () => {
       return;
     }
 
-    playBetSound();
+    if (!isMuted) playBetSound();
     setGameStatus("flying");
     setPlanePosition(0);
     setCurrentMultiplier(1.0);
