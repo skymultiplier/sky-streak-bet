@@ -306,72 +306,57 @@ export const GameInterface = () => {
   const collectWinnings = async () => {
     if (gameStatus !== "collect" && gameStatus !== "crashed") return;
     const finalMultiplier = currentMultiplier;
-    const isWin = currentWinnings > parseFloat(betAmount);
-    
-    
+    const betAmt = parseFloat(betAmount);
+    const isWin = currentWinnings > betAmt;
+
     if (isDemoMode) {
-      // Demo mode logic
       collectDemoWinnings(isWin, finalMultiplier);
       return;
     }
 
     if (!currentBetId) {
-      toast({
-        title: t('game.error'),
-        description: t('game.noActiveBet'),
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "No active bet found.", variant: "destructive" });
       return;
     }
 
     try {
-      // Resolve bet using Supabase
+      // Always resolve as "not crashed" so the remaining amount (bet × multiplier)
+      // is credited back to the user, even when it's less than the original stake.
       const { data, error } = await supabase.rpc('resolve_bet', {
         p_bet_id: currentBetId,
         p_cashout_multiplier: finalMultiplier,
-        p_crashed: !isWin
+        p_crashed: false,
       });
 
       if (error) {
         console.error('Error resolving bet:', error);
-        toast({
-          title: t('game.error'),
-          description: t('game.failedToResolveBet'),
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Failed to resolve bet.", variant: "destructive" });
         return;
       }
 
-      const result = data as { success: boolean; payout?: number; new_balance?: number; error?: string };
-
-      // Update loss streak based on win/loss
       if (isWin) {
-        setLossStreak(0); // Reset streak on win
-        playWinSound();
-        // Show winning visual effect
+        setLossStreak(0);
+        if (!isMuted) playWinSound();
         setShowWinningEffect(true);
         setTimeout(() => setShowWinningEffect(false), 3000);
-        
         toast({
-          title: t('game.congratulations'),
-          description: `${t('game.youWon')} $${(result.payout || 0).toFixed(2)}!`,
+          title: "Congratulations!",
+          description: `You won $${currentWinnings.toFixed(2)}!`,
         });
       } else {
-        setLossStreak(prev => prev + 1); // Increment streak on loss
+        setLossStreak((prev) => prev + 1);
+        toast({
+          title: "Round over",
+          description: `Recovered $${currentWinnings.toFixed(2)} of your $${betAmt.toFixed(2)} bet.`,
+        });
       }
-      
-      // Refresh user profile to get updated balance
+
       await refreshProfile();
-      
-    } catch (error) {
-      console.error('Error resolving bet:', error);
-      toast({
-        title: t('game.error'),
-        description: t('game.failedToResolveBet'),
-        variant: "destructive",
-      });
+    } catch (e) {
+      console.error('Error resolving bet:', e);
+      toast({ title: "Error", description: "Failed to resolve bet.", variant: "destructive" });
     }
-    
+
     setShowCollectModal(false);
     setGameStatus("waiting");
     setPlanePosition(0);
@@ -382,39 +367,41 @@ export const GameInterface = () => {
   const collectDemoWinnings = (isWin: boolean, finalMultiplier: number) => {
     const savedBalance = localStorage.getItem('demoBalance') || '1000';
     let currentBalance = parseFloat(savedBalance);
-    
-    // Update loss streak based on win/loss
+    const betAmt = parseFloat(betAmount);
+
+    // Always credit whatever remains (currentWinnings = bet × multiplier).
+    currentBalance += currentWinnings;
+    localStorage.setItem('demoBalance', currentBalance.toString());
+
     if (isWin) {
-      setLossStreak(0); // Reset streak on win
-      playWinSound();
-      // Show winning visual effect
+      setLossStreak(0);
+      if (!isMuted) playWinSound();
       setShowWinningEffect(true);
       setTimeout(() => setShowWinningEffect(false), 3000);
-      
-      currentBalance += currentWinnings;
-      localStorage.setItem('demoBalance', currentBalance.toString());
-      
       toast({
-        title: t('game.demoWin'),
-        description: `${t('game.youWon')} $${currentWinnings.toFixed(2)}!`,
+        title: "Demo win!",
+        description: `You won $${currentWinnings.toFixed(2)}!`,
       });
     } else {
-      setLossStreak(prev => prev + 1); // Increment streak on loss
+      setLossStreak((prev) => prev + 1);
+      toast({
+        title: "Round over",
+        description: `Recovered $${currentWinnings.toFixed(2)} of your $${betAmt.toFixed(2)} bet.`,
+      });
     }
-    
-    // Add to demo bet history (localStorage)
+
     const demoHistory = JSON.parse(localStorage.getItem('demoBetHistory') || '[]');
     const newBet = {
       id: Date.now(),
-      bet_amount: parseFloat(betAmount),
+      bet_amount: betAmt,
       multiplier: finalMultiplier.toFixed(1) + 'x',
-      payout: isWin ? currentWinnings : 0,
+      payout: currentWinnings,
       created_at: new Date().toISOString(),
-      status: isWin ? 'won' : 'lost'
+      status: isWin ? 'won' : 'lost',
     };
     demoHistory.unshift(newBet);
-    localStorage.setItem('demoBetHistory', JSON.stringify(demoHistory.slice(0, 50))); // Keep last 50
-    
+    localStorage.setItem('demoBetHistory', JSON.stringify(demoHistory.slice(0, 50)));
+
     setShowCollectModal(false);
     setGameStatus("waiting");
     setPlanePosition(0);
