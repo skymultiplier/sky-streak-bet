@@ -46,7 +46,7 @@ export const GameInterface = () => {
   const [recentBets, setRecentBets] = useState<RecentBet[]>([]);
   const [isMuted, setIsMuted] = useState(false);
 
-  const { playBetSound, playWinSound, startBackgroundMusic, stopBackgroundMusic } = useSoundEffects();
+  const { playBetSound, playWinSound, startBackgroundMusic, stopBackgroundMusic, startFlyingSound, stopFlyingSound } = useSoundEffects();
   const { user, userProfile, refreshProfile, balance, username, isAuthenticated } = useAuth();
   const { t } = useLanguage();
 
