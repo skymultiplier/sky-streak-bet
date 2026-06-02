@@ -63,6 +63,16 @@ export const GameInterface = () => {
     });
   };
 
+  // Airplane flying engine sound — only while in flight
+  useEffect(() => {
+    if (gameStatus === "flying" && !isMuted) {
+      startFlyingSound();
+    } else {
+      stopFlyingSound();
+    }
+    return () => { stopFlyingSound(); };
+  }, [gameStatus, isMuted]);
+
   // Auto-show the collect modal when round ends
   useEffect(() => {
     if (gameStatus === "collect" || gameStatus === "crashed") {
