@@ -488,6 +488,17 @@ export const GameInterface = () => {
                 {t('game.replenish')}
               </Button>
             )}
+
+            <Button
+              onClick={toggleMute}
+              size="sm"
+              variant="outline"
+              className="text-xs h-7 px-2 border-slate-600 text-gray-300 hover:bg-slate-700"
+              title={isMuted ? "Unmute sound" : "Mute sound"}
+              aria-label={isMuted ? "Unmute sound" : "Mute sound"}
+            >
+              {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+            </Button>
           </div>
         </Card>
 
