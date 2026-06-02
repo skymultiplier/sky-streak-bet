@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Plane, TrendingUp, TrendingDown, Bomb, DollarSign, Waves, Mountain, Gift, User, Sparkles, Clock } from "lucide-react";
+import { Plane, TrendingUp, TrendingDown, Bomb, DollarSign, Waves, Mountain, Gift, User, Sparkles, Clock, Volume2, VolumeX } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthModal } from "./AuthModal";
 import { useSoundEffects } from "../hooks/useSoundEffects";
