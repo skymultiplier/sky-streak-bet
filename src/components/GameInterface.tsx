@@ -755,23 +755,30 @@ export const GameInterface = () => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {recentBets.map((b) => (
-                    <div key={b.id} className="flex items-center justify-between text-xs bg-slate-900/50 px-3 py-2 rounded">
-                      <div className="flex items-center gap-2">
-                        {b.status === 'won' ? (
-                          <TrendingUp className="h-3 w-3 text-green-400" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-red-400" />
-                        )}
-                        <span className="text-gray-300">${b.amount.toFixed(2)}</span>
-                        <span className="text-gray-500">·</span>
-                        <span className="text-gray-400">{b.multiplier.toFixed(2)}x</span>
+                  {recentBets.map((b) => {
+                    const net = b.payout - b.amount;
+                    const positive = net >= 0;
+                    return (
+                      <div key={b.id} className="flex items-center justify-between text-xs bg-slate-900/50 px-3 py-2 rounded">
+                        <div className="flex items-center gap-2">
+                          {positive ? (
+                            <TrendingUp className="h-3 w-3 text-green-400" />
+                          ) : (
+                            <TrendingDown className="h-3 w-3 text-orange-400" />
+                          )}
+                          <span className="text-gray-300">Bet ${b.amount.toFixed(2)}</span>
+                          <span className="text-gray-500">·</span>
+                          <span className="text-gray-400">{b.multiplier.toFixed(2)}x</span>
+                        </div>
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className="text-[10px] text-gray-400">Collected</span>
+                          <span className={`font-bold ${positive ? 'text-green-400' : 'text-orange-300'}`}>
+                            ${b.payout.toFixed(2)}
+                          </span>
+                        </div>
                       </div>
-                      <span className={`font-bold ${b.status === 'won' ? 'text-green-400' : 'text-red-400'}`}>
-                        {b.status === 'won' ? `+$${b.payout.toFixed(2)}` : `-$${b.amount.toFixed(2)}`}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </Card>
