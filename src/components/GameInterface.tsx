@@ -845,52 +845,54 @@ export const GameInterface = () => {
           {(() => {
             const betAmt = parseFloat(betAmount) || 0;
             const net = currentWinnings - betAmt;
-            const isWin = net > 0;
+            const isBigWin = net > 0;
+            const headline = isBigWin
+              ? "🎉 Great flight!"
+              : "✈️ Flight complete";
+            const subline = isBigWin
+              ? "Your ticket paid off — collect your winnings now."
+              : "Your ticket is ready to be collected — every flight returns value to your balance.";
             return (
               <>
                 <DialogHeader>
                   <DialogTitle className="text-center text-2xl text-white">
-                    {isWin ? "🎉 You Won!" : "Round Over"}
+                    {headline}
                   </DialogTitle>
                   <DialogDescription className="text-center text-gray-400">
-                    {isWin
-                      ? "Collect your winnings to add them to your balance."
-                      : "Your remaining amount will be returned to your balance."}
+                    {subline}
                   </DialogDescription>
                 </DialogHeader>
 
-                <div className="py-4 space-y-3 text-center">
-                  <div>
-                    <div className="text-sm text-gray-400">Final multiplier</div>
-                    <div className="text-3xl font-bold text-cyan-400">{currentMultiplier.toFixed(2)}x</div>
+                <div className="py-4 space-y-4 text-center">
+                  <div className="bg-slate-800/60 rounded-lg p-4">
+                    <div className="text-sm text-gray-400">Amount won</div>
+                    <div className={`text-4xl font-extrabold ${isBigWin ? "text-green-400" : "text-cyan-300"}`}>
+                      ${currentWinnings.toFixed(2)}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      at {currentMultiplier.toFixed(2)}x multiplier
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 text-left bg-slate-800/60 rounded-lg p-3">
+                  <div className="grid grid-cols-2 gap-3 text-left bg-slate-800/40 rounded-lg p-3">
                     <div>
-                      <div className="text-xs text-gray-400">Your bet</div>
+                      <div className="text-xs text-gray-400">Ticket price</div>
                       <div className="text-base font-semibold text-white">${betAmt.toFixed(2)}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-400">Amount returned</div>
-                      <div className="text-base font-semibold text-cyan-300">${currentWinnings.toFixed(2)}</div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="text-sm text-gray-400">{isWin ? "Profit" : "Loss"}</div>
-                    <div className={`text-4xl font-extrabold ${isWin ? "text-green-400" : "text-red-400"}`}>
-                      {isWin ? `+$${net.toFixed(2)}` : `-$${Math.abs(net).toFixed(2)}`}
+                      <div className="text-xs text-gray-400">Net result</div>
+                      <div className={`text-base font-semibold ${isBigWin ? "text-green-400" : "text-orange-300"}`}>
+                        {isBigWin ? `+$${net.toFixed(2)}` : `$${net.toFixed(2)}`}
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <Button
                   onClick={collectWinnings}
-                  className={`w-full font-bold py-3 text-lg text-white ${isWin ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}`}
+                  className={`w-full font-bold py-3 text-lg text-white ${isBigWin ? "bg-green-600 hover:bg-green-700" : "bg-cyan-600 hover:bg-cyan-700"}`}
                 >
-                  {isWin
-                    ? `Collect $${currentWinnings.toFixed(2)}`
-                    : `Return $${currentWinnings.toFixed(2)} to balance`}
+                  Collect ${currentWinnings.toFixed(2)}
                 </Button>
               </>
             );
