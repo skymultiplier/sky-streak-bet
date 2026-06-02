@@ -227,7 +227,7 @@ export const GameInterface = () => {
     }
     
     // Play bet sound effect
-    playBetSound();
+    if (!isMuted) playBetSound();
     
     try {
       // Place bet using Supabase
