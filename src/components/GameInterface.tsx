@@ -821,7 +821,7 @@ export const GameInterface = () => {
               <h3 className="text-lg font-semibold text-white mb-4">{t('game.quickLinks')}</h3>
 
               <div className="space-y-2">
-                <Link to={`/${(useLanguage as any) ? '' : ''}history`.replace(/^\//, '/')}>
+                <Link to="/history">
                   <Button variant="outline" className="w-full justify-start bg-slate-700 border-cyan-500/40 text-white hover:bg-cyan-600 hover:text-white">
                     {t('game.bettingHistory')}
                   </Button>
