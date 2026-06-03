@@ -50,10 +50,11 @@ export const GameInterface = () => {
   const { user, userProfile, refreshProfile, balance, username, isAuthenticated } = useAuth();
   const { t } = useLanguage();
 
+  // Background ambient drone removed — was causing a buzzing sound.
+  // The in-flight airplane engine sound below is kept.
   useEffect(() => {
-    if (!isMuted) startBackgroundMusic();
     return () => { stopBackgroundMusic(); };
-  }, [isMuted]);
+  }, []);
 
   const toggleMute = () => {
     setIsMuted((m) => {
