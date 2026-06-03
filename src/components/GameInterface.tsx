@@ -351,16 +351,18 @@ export const GameInterface = () => {
         setLossStreak(0);
         if (!isMuted) playWinSound();
         setShowWinningEffect(true);
-        setTimeout(() => setShowWinningEffect(false), 3000);
+        setTimeout(() => setShowWinningEffect(false), 1500);
         toast({
           title: "Congratulations!",
           description: `You won $${currentWinnings.toFixed(2)}!`,
+          duration: 1800,
         });
       } else {
         setLossStreak((prev) => prev + 1);
         toast({
           title: "Round over",
           description: `Recovered $${currentWinnings.toFixed(2)} of your $${betAmt.toFixed(2)} bet.`,
+          duration: 1800,
         });
       }
 
