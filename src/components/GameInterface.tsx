@@ -748,15 +748,15 @@ export const GameInterface = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-white flex items-center">
                   <Clock className="h-4 w-4 mr-2 text-cyan-400" />
-                  {t('game.recentBets') || 'Recent Bets'}
+                  Recent Bets
                 </h3>
-                <Link to={`/history`} className="text-xs text-cyan-400 hover:underline">
-                  {t('game.viewAll') || 'View all'}
+                <Link to="/history" className="text-xs text-cyan-300 hover:text-cyan-200 hover:underline font-semibold">
+                  View all
                 </Link>
               </div>
               {recentBets.length === 0 ? (
-                <div className="text-xs text-gray-500 text-center py-3">
-                  {t('game.noRecentBets') || 'No bets yet — place your first bet!'}
+                <div className="text-xs text-gray-400 text-center py-3">
+                  No bets yet — place your first bet!
                 </div>
               ) : (
                 <div className="space-y-2">
