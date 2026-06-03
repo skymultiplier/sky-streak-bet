@@ -1,0 +1,71 @@
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    const { email, amount, reference, callback_url } = await req.json();
+
+    if (!email || typeof email !== 'string') {
+      return new Response(JSON.stringify({ error: 'email is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const amountNum = Number(amount);
+    if (!Number.isFinite(amountNum) || amountNum <= 0) {
+      return new Response(JSON.stringify({ error: 'amount must be a positive number (USD)' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const secret = Deno.env.get('PAYSTACK_SECRET_KEY');
+    if (!secret) {
+      return new Response(JSON.stringify({ error: 'PAYSTACK_SECRET_KEY not configured' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Paystack expects the smallest currency unit. We treat the incoming
+    // amount as USD-equivalent and charge in NGN kobo at a placeholder rate
+    // of 1 USD = 1500 NGN (adjust to your live rate as needed).
+    const ngnKobo = Math.round(amountNum * 1500 * 100);
+
+    const res = await fetch('https://api.paystack.co/transaction/initialize', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        amount: ngnKobo,
+        currency: 'NGN',
+        reference: reference || `sm_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        callback_url,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.status) {
+      return new Response(JSON.stringify({ error: data.message || 'Paystack init failed' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify(data.data), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: (e as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});

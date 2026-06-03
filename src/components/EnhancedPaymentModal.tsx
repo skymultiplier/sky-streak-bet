@@ -32,6 +32,49 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
   const [helpMessage, setHelpMessage] = useState('');
   const [submittingHelp, setSubmittingHelp] = useState(false);
   const [submittingPayment, setSubmittingPayment] = useState(false);
+  const [paystackLoading, setPaystackLoading] = useState(false);
+
+  const handlePaystack = async () => {
+    const amt = parseFloat(amount);
+    if (!amt || amt < 10) {
+      toast({ title: 'Enter an amount of at least $10', variant: 'destructive' });
+      return;
+    }
+    if (!user?.email) {
+      toast({ title: 'Please log in to use Paystack', variant: 'destructive' });
+      return;
+    }
+    setPaystackLoading(true);
+    try {
+      const ref = `sm_${user.id.slice(0, 8)}_${Date.now()}`;
+      const { data, error } = await supabase.functions.invoke('paystack-initialize', {
+        body: {
+          email: user.email,
+          amount: amt,
+          reference: ref,
+          callback_url: window.location.origin + '/my-account',
+        },
+      });
+      if (error || !data?.authorization_url) {
+        toast({ title: 'Paystack init failed', description: error?.message || 'Try again', variant: 'destructive' });
+        return;
+      }
+      // Log a pending transaction so it appears in history
+      await supabase.from('transactions').insert({
+        user_id: user.id,
+        type: 'deposit',
+        amount: amt,
+        description: 'Paystack deposit pending',
+        reference: ref,
+        status: 'pending',
+      });
+      window.open(data.authorization_url, '_blank');
+      toast({ title: 'Paystack opened', description: 'Complete the payment in the new tab.' });
+      onClose();
+    } finally {
+      setPaystackLoading(false);
+    }
+  };
 
   const addresses = {
     usdt: { tron: "TEWRV79s2P7ZzeAicmfVSGMAwhYHwETBsJ" },
@@ -208,7 +251,23 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
             <ChevronRight className="h-5 w-5 text-gray-400" />
           </div>
         </Card>
+        {type === 'deposit' && (
+          <Card onClick={handlePaystack}
+            className="bg-slate-700/50 border-green-600/40 hover:border-green-400 p-5 cursor-pointer transition-all hover:bg-slate-700/70">
+            <div className="flex items-center space-x-4">
+              <div className="h-14 w-14 rounded-full bg-green-500/20 flex items-center justify-center">
+                <CreditCard className="h-7 w-7 text-green-400" />
+              </div>
+              <div className="flex-1">
+                <div className="font-bold text-white text-lg">Paystack {paystackLoading && <Loader2 className="inline h-4 w-4 animate-spin ml-1" />}</div>
+                <div className="text-sm text-gray-300">Card, Bank, USSD, Transfer (NGN / Africa)</div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-gray-300" />
+            </div>
+          </Card>
+        )}
         <Card className="bg-slate-700/30 border-slate-600/30 p-5 opacity-50 cursor-not-allowed">
+
           <div className="flex items-center space-x-4">
             <div className="h-14 w-14 rounded-full bg-slate-600/20 flex items-center justify-center">
               <CreditCard className="h-7 w-7 text-gray-500" />

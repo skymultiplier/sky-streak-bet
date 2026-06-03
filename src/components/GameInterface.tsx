@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { LiveChat } from "./LiveChat";
 
 interface RecentBet {
   id: string | number;
@@ -50,10 +51,11 @@ export const GameInterface = () => {
   const { user, userProfile, refreshProfile, balance, username, isAuthenticated } = useAuth();
   const { t } = useLanguage();
 
+  // Background ambient drone removed — was causing a buzzing sound.
+  // The in-flight airplane engine sound below is kept.
   useEffect(() => {
-    if (!isMuted) startBackgroundMusic();
     return () => { stopBackgroundMusic(); };
-  }, [isMuted]);
+  }, []);
 
   const toggleMute = () => {
     setIsMuted((m) => {
@@ -350,16 +352,18 @@ export const GameInterface = () => {
         setLossStreak(0);
         if (!isMuted) playWinSound();
         setShowWinningEffect(true);
-        setTimeout(() => setShowWinningEffect(false), 3000);
+        setTimeout(() => setShowWinningEffect(false), 1500);
         toast({
           title: "Congratulations!",
           description: `You won $${currentWinnings.toFixed(2)}!`,
+          duration: 1800,
         });
       } else {
         setLossStreak((prev) => prev + 1);
         toast({
           title: "Round over",
           description: `Recovered $${currentWinnings.toFixed(2)} of your $${betAmt.toFixed(2)} bet.`,
+          duration: 1800,
         });
       }
 
@@ -389,16 +393,18 @@ export const GameInterface = () => {
       setLossStreak(0);
       if (!isMuted) playWinSound();
       setShowWinningEffect(true);
-      setTimeout(() => setShowWinningEffect(false), 3000);
+      setTimeout(() => setShowWinningEffect(false), 1500);
       toast({
         title: "Demo win!",
         description: `You won $${currentWinnings.toFixed(2)}!`,
+        duration: 1800,
       });
     } else {
       setLossStreak((prev) => prev + 1);
       toast({
         title: "Round over",
         description: `Recovered $${currentWinnings.toFixed(2)} of your $${betAmt.toFixed(2)} bet.`,
+        duration: 1800,
       });
     }
 
@@ -743,15 +749,15 @@ export const GameInterface = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-white flex items-center">
                   <Clock className="h-4 w-4 mr-2 text-cyan-400" />
-                  {t('game.recentBets') || 'Recent Bets'}
+                  Recent Bets
                 </h3>
-                <Link to={`/history`} className="text-xs text-cyan-400 hover:underline">
-                  {t('game.viewAll') || 'View all'}
+                <Link to="/history" className="text-xs text-cyan-300 hover:text-cyan-200 hover:underline font-semibold">
+                  View all
                 </Link>
               </div>
               {recentBets.length === 0 ? (
-                <div className="text-xs text-gray-500 text-center py-3">
-                  {t('game.noRecentBets') || 'No bets yet — place your first bet!'}
+                <div className="text-xs text-gray-400 text-center py-3">
+                  No bets yet — place your first bet!
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -814,22 +820,22 @@ export const GameInterface = () => {
             {/* Navigation Links */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
               <h3 className="text-lg font-semibold text-white mb-4">{t('game.quickLinks')}</h3>
-              
+
               <div className="space-y-2">
                 <Link to="/history">
-                  <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
+                  <Button variant="outline" className="w-full justify-start bg-slate-700 border-cyan-500/40 text-white hover:bg-cyan-600 hover:text-white">
                     {t('game.bettingHistory')}
                   </Button>
                 </Link>
-                
+
                 <Link to="/leaderboard">
-                  <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
+                  <Button variant="outline" className="w-full justify-start bg-slate-700 border-cyan-500/40 text-white hover:bg-cyan-600 hover:text-white">
                     {t('game.leaderboard')}
                   </Button>
                 </Link>
-                
+
                 <Link to="/my-account">
-                  <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
+                  <Button variant="outline" className="w-full justify-start bg-slate-700 border-cyan-500/40 text-white hover:bg-cyan-600 hover:text-white">
                     {t('game.myAccount')}
                   </Button>
                 </Link>
@@ -838,6 +844,7 @@ export const GameInterface = () => {
           </div>
         </div>
       </div>
+      <LiveChat />
 
       {/* Round-end Modal */}
       <Dialog open={showCollectModal} onOpenChange={(open) => { if (!open) collectWinnings(); }}>
