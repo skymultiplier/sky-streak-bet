@@ -32,6 +32,49 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
   const [helpMessage, setHelpMessage] = useState('');
   const [submittingHelp, setSubmittingHelp] = useState(false);
   const [submittingPayment, setSubmittingPayment] = useState(false);
+  const [paystackLoading, setPaystackLoading] = useState(false);
+
+  const handlePaystack = async () => {
+    const amt = parseFloat(amount);
+    if (!amt || amt < 10) {
+      toast({ title: 'Enter an amount of at least $10', variant: 'destructive' });
+      return;
+    }
+    if (!user?.email) {
+      toast({ title: 'Please log in to use Paystack', variant: 'destructive' });
+      return;
+    }
+    setPaystackLoading(true);
+    try {
+      const ref = `sm_${user.id.slice(0, 8)}_${Date.now()}`;
+      const { data, error } = await supabase.functions.invoke('paystack-initialize', {
+        body: {
+          email: user.email,
+          amount: amt,
+          reference: ref,
+          callback_url: window.location.origin + '/my-account',
+        },
+      });
+      if (error || !data?.authorization_url) {
+        toast({ title: 'Paystack init failed', description: error?.message || 'Try again', variant: 'destructive' });
+        return;
+      }
+      // Log a pending transaction so it appears in history
+      await supabase.from('transactions').insert({
+        user_id: user.id,
+        type: 'deposit',
+        amount: amt,
+        description: 'Paystack deposit pending',
+        reference: ref,
+        status: 'pending',
+      });
+      window.open(data.authorization_url, '_blank');
+      toast({ title: 'Paystack opened', description: 'Complete the payment in the new tab.' });
+      onClose();
+    } finally {
+      setPaystackLoading(false);
+    }
+  };
 
   const addresses = {
     usdt: { tron: "TEWRV79s2P7ZzeAicmfVSGMAwhYHwETBsJ" },
