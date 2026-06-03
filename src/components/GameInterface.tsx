@@ -819,22 +819,22 @@ export const GameInterface = () => {
             {/* Navigation Links */}
             <Card className="bg-slate-800/50 border-cyan-500/20 p-4">
               <h3 className="text-lg font-semibold text-white mb-4">{t('game.quickLinks')}</h3>
-              
+
               <div className="space-y-2">
-                <Link to="/history">
-                  <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
+                <Link to={`/${(useLanguage as any) ? '' : ''}history`.replace(/^\//, '/')}>
+                  <Button variant="outline" className="w-full justify-start bg-slate-700 border-cyan-500/40 text-white hover:bg-cyan-600 hover:text-white">
                     {t('game.bettingHistory')}
                   </Button>
                 </Link>
-                
+
                 <Link to="/leaderboard">
-                  <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
+                  <Button variant="outline" className="w-full justify-start bg-slate-700 border-cyan-500/40 text-white hover:bg-cyan-600 hover:text-white">
                     {t('game.leaderboard')}
                   </Button>
                 </Link>
-                
+
                 <Link to="/my-account">
-                  <Button variant="outline" className="w-full justify-start border-slate-600 text-gray-300 hover:bg-slate-700">
+                  <Button variant="outline" className="w-full justify-start bg-slate-700 border-cyan-500/40 text-white hover:bg-cyan-600 hover:text-white">
                     {t('game.myAccount')}
                   </Button>
                 </Link>
@@ -842,6 +842,8 @@ export const GameInterface = () => {
             </Card>
           </div>
         </div>
+        <LiveChat />
+      </div>
       </div>
 
       {/* Round-end Modal */}
