@@ -208,7 +208,23 @@ export const EnhancedPaymentModal = ({ isOpen, onClose, type, amount, onAmountCh
             <ChevronRight className="h-5 w-5 text-gray-400" />
           </div>
         </Card>
+        {type === 'deposit' && (
+          <Card onClick={handlePaystack}
+            className="bg-slate-700/50 border-green-600/40 hover:border-green-400 p-5 cursor-pointer transition-all hover:bg-slate-700/70">
+            <div className="flex items-center space-x-4">
+              <div className="h-14 w-14 rounded-full bg-green-500/20 flex items-center justify-center">
+                <CreditCard className="h-7 w-7 text-green-400" />
+              </div>
+              <div className="flex-1">
+                <div className="font-bold text-white text-lg">Paystack {paystackLoading && <Loader2 className="inline h-4 w-4 animate-spin ml-1" />}</div>
+                <div className="text-sm text-gray-300">Card, Bank, USSD, Transfer (NGN / Africa)</div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-gray-300" />
+            </div>
+          </Card>
+        )}
         <Card className="bg-slate-700/30 border-slate-600/30 p-5 opacity-50 cursor-not-allowed">
+
           <div className="flex items-center space-x-4">
             <div className="h-14 w-14 rounded-full bg-slate-600/20 flex items-center justify-center">
               <CreditCard className="h-7 w-7 text-gray-500" />
