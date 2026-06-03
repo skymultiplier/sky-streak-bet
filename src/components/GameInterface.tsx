@@ -842,9 +842,8 @@ export const GameInterface = () => {
             </Card>
           </div>
         </div>
-        <LiveChat />
       </div>
-      </div>
+      <LiveChat />
 
       {/* Round-end Modal */}
       <Dialog open={showCollectModal} onOpenChange={(open) => { if (!open) collectWinnings(); }}>
