@@ -145,19 +145,20 @@ export const LiveChat = () => {
 
   return (
     <>
-      {/* Trigger — bottom-right so it doesn't obstruct top nav or game UI */}
+      {/* Trigger — placed just below the top demo/real action bar */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-30 bg-cyan-700 hover:bg-cyan-600 text-white rounded-full shadow-lg p-3 flex items-center gap-2"
+        className="fixed top-32 right-4 z-30 bg-cyan-700 hover:bg-cyan-600 text-white rounded-full shadow-lg px-3 py-2 flex items-center gap-2"
         aria-label="Open live chat"
       >
-        <MessageCircle className="h-5 w-5" />
-        <span className="hidden sm:inline text-sm font-semibold">Lounge</span>
+        <MessageCircle className="h-4 w-4" />
+        <span className="text-xs font-semibold">Lounge</span>
         <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse" />
       </button>
 
       {open && (
-        <div className="fixed bottom-20 left-2 sm:bottom-24 sm:left-6 z-40 w-[92vw] max-w-sm h-[65vh] max-h-[500px] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl flex flex-col">
+        <div className="fixed top-44 right-2 sm:right-6 z-40 w-[92vw] max-w-sm h-[60vh] max-h-[480px] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl flex flex-col">
+
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-slate-800 rounded-t-xl">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
