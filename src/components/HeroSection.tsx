@@ -140,13 +140,13 @@ export const HeroSection = () => {
           </p>
           <div className="relative max-w-4xl mx-auto">
             <Card className="bg-slate-800 border-cyan-500/30 p-8 overflow-hidden">
-              <div className="aspect-video bg-gradient-to-b from-slate-900 to-blue-950 rounded-lg flex items-center justify-center relative">
+              <div className="aspect-video bg-slate-900 rounded-lg flex items-center justify-center relative">
                 {/* Mock flight path */}
                 <div className="absolute left-6 right-6 top-1/2 h-1 bg-cyan-500/30 rounded-full" />
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div
                     key={i}
-                    className="absolute top-1/2 -translate-y-1/2 w-8 h-8 rounded-md bg-gradient-to-br from-purple-500 to-cyan-500 border border-white/20 animate-pulse"
+                    className="absolute top-1/2 -translate-y-1/2 w-8 h-8 rounded-md bg-cyan-600 border border-white/20 animate-pulse"
                     style={{ left: `${10 + i * 12}%`, animationDelay: `${i * 0.2}s` }}
                   />
                 ))}
