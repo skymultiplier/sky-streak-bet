@@ -26,11 +26,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    const secret = Deno.env.get('PAYSTACK_SECRET_KEY');
+    const rawSecret = Deno.env.get('PAYSTACK_SECRET_KEY');
+    const secret = rawSecret?.trim().replace(/^Bearer\s+/i, '');
+
     if (!secret) {
       console.error('PAYSTACK_SECRET_KEY is not configured');
-      return new Response(JSON.stringify({ error: 'Server configuration error: PAYSTACK_SECRET_KEY missing' }), {
-        status: 500,
+      return new Response(JSON.stringify({ error: 'Paystack is not configured yet. Please add the Paystack secret key.' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!/^sk_(test|live)_/i.test(secret)) {
+      console.error('PAYSTACK_SECRET_KEY has an invalid format. It must start with sk_test_ or sk_live_.');
+      return new Response(JSON.stringify({ error: 'Paystack secret key is invalid. Use the secret key that starts with sk_test_ or sk_live_.' }), {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -58,7 +68,7 @@ Deno.serve(async (req) => {
     if (!res.ok || !data.status) {
       console.error('Paystack error:', data);
       return new Response(JSON.stringify({ error: data.message || 'Paystack init failed' }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
