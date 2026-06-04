@@ -1,4 +1,8 @@
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -24,15 +28,15 @@ Deno.serve(async (req) => {
 
     const secret = Deno.env.get('PAYSTACK_SECRET_KEY');
     if (!secret) {
-      return new Response(JSON.stringify({ error: 'PAYSTACK_SECRET_KEY not configured' }), {
+      console.error('PAYSTACK_SECRET_KEY is not configured');
+      return new Response(JSON.stringify({ error: 'Server configuration error: PAYSTACK_SECRET_KEY missing' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Paystack expects the smallest currency unit. We treat the incoming
-    // amount as USD-equivalent and charge in NGN kobo at a placeholder rate
-    // of 1 USD = 1500 NGN (adjust to your live rate as needed).
+    // Paystack expects the smallest currency unit (kobo for NGN).
+    // Treat incoming amount as USD-equivalent at 1 USD = 1500 NGN (adjust as needed).
     const ngnKobo = Math.round(amountNum * 1500 * 100);
 
     const res = await fetch('https://api.paystack.co/transaction/initialize', {
@@ -52,6 +56,7 @@ Deno.serve(async (req) => {
 
     const data = await res.json();
     if (!res.ok || !data.status) {
+      console.error('Paystack error:', data);
       return new Response(JSON.stringify({ error: data.message || 'Paystack init failed' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -63,6 +68,7 @@ Deno.serve(async (req) => {
       status: 200,
     });
   } catch (e) {
+    console.error('paystack-initialize exception:', e);
     return new Response(JSON.stringify({ error: (e as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -49,18 +49,9 @@ export const HeroSection = () => {
 
   return (
     <div className="min-h-screen bg-slate-900 relative overflow-hidden">
-      {/* Soft animated sky background */}
-      <div className="absolute inset-0 opacity-30 pointer-events-none">
-        <div className="absolute top-10 left-10 h-40 w-40 bg-cyan-500 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-10 h-56 w-56 bg-blue-600 rounded-full blur-3xl animate-pulse" />
-      </div>
-
       <div className="container mx-auto px-4 py-16 relative z-10">
         <div className="text-center mb-16">
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/40 rounded-full px-4 py-1 text-cyan-300 text-sm mb-6">
-              <Plane className="h-4 w-4" /> Live now · 10,000+ pilots flying
-            </div>
             <h1 className="text-6xl md:text-8xl font-bold mb-6">
               <span className="text-cyan-400">Sky</span>
               <span className="text-white">Multiplier</span>
@@ -149,13 +140,13 @@ export const HeroSection = () => {
           </p>
           <div className="relative max-w-4xl mx-auto">
             <Card className="bg-slate-800 border-cyan-500/30 p-8 overflow-hidden">
-              <div className="aspect-video bg-gradient-to-b from-slate-900 to-blue-950 rounded-lg flex items-center justify-center relative">
+              <div className="aspect-video bg-slate-900 rounded-lg flex items-center justify-center relative">
                 {/* Mock flight path */}
                 <div className="absolute left-6 right-6 top-1/2 h-1 bg-cyan-500/30 rounded-full" />
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div
                     key={i}
-                    className="absolute top-1/2 -translate-y-1/2 w-8 h-8 rounded-md bg-gradient-to-br from-purple-500 to-cyan-500 border border-white/20 animate-pulse"
+                    className="absolute top-1/2 -translate-y-1/2 w-8 h-8 rounded-md bg-cyan-600 border border-white/20 animate-pulse"
                     style={{ left: `${10 + i * 12}%`, animationDelay: `${i * 0.2}s` }}
                   />
                 ))}

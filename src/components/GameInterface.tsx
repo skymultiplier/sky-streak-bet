@@ -525,15 +525,15 @@ export const GameInterface = () => {
           {/* Game Display - Left Side */}
           <div className="flex-1">
             <Card className="bg-slate-800/50 border-cyan-500/20 p-3 sm:p-6 h-44 sm:h-96">
-              <div className="relative h-full bg-gradient-to-b from-blue-400/30 via-blue-600/20 to-blue-800/30 rounded-lg overflow-hidden">
+              <div className="relative h-full bg-slate-800 rounded-lg overflow-hidden">
                 
                 {/* Water and Sky Background */}
                 <div className="absolute inset-0">
                   {/* Sky */}
-                  <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-sky-400/30 to-blue-500/20" />
+                  <div className="absolute top-0 left-0 right-0 h-1/3 bg-slate-700/40" />
                   
                   {/* Water */}
-                  <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-blue-900/40 to-blue-600/30">
+                  <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-slate-800/60">
                     {/* Water waves */}
                     <div className="absolute inset-0 opacity-30">
                       <Waves className="absolute bottom-6 sm:bottom-10 left-6 sm:left-10 h-4 w-4 sm:h-6 sm:w-6 text-blue-300 animate-pulse" />
@@ -554,7 +554,7 @@ export const GameInterface = () => {
                   <div className="w-full h-1 sm:h-2 bg-cyan-500/20 rounded-full relative">
                     {/* Flight progress */}
                     <div 
-                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-100"
+                      className="absolute top-0 left-0 h-full bg-cyan-500 rounded-full transition-all duration-100"
                       style={{ width: `${planePosition}%` }}
                     />
                   </div>
@@ -581,7 +581,7 @@ export const GameInterface = () => {
                         {box.multiplier}x
                       </div>
                     ) : (
-                      <div className="w-4 h-4 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500/60 to-cyan-500/60 border border-white/30 rounded-lg animate-pulse">
+                      <div className="w-4 h-4 sm:w-8 sm:h-8 bg-cyan-600/60 border border-white/30 rounded-lg animate-pulse">
                         <Gift className="h-2 w-2 sm:h-4 sm:w-4 text-white/80 m-1 sm:m-2" />
                       </div>
                     )}
@@ -630,7 +630,7 @@ export const GameInterface = () => {
                     ))}
                     {/* Winner text */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-3 rounded-lg font-bold text-lg animate-pulse shadow-lg">
+                      <div className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-bold text-lg animate-pulse shadow-lg">
                         {t('game.bigWin')}
                       </div>
                     </div>
